@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BLACK MIRROR — Black Flag Engine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{--bg:#0d0a0e;--bg2:#1a1520;--card:#1e1825;--border:#2e2535;--text:#e8e0ec;--muted:#8a7a94;--rose:#e84393;--rose-dim:rgba(232,67,147,.12);--amber:#f59e0b;--amber-dim:rgba(245,158,11,.1);--wine:#9b2c5a;--cream:#faf0e6;--green:#22c55e;--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100dvh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(232,67,147,.06) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(245,158,11,.04) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.S{display:none;min-height:100dvh;position:relative;z-index:1;}.S.active{display:flex;flex-direction:column;}
+.serif{font-family:'Playfair Display',serif;}.mono{font-family:'JetBrains Mono',monospace;}
+.btn{padding:14px 28px;border:2px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;width:100%;}
+.btn:active{transform:scale(.96);}.btn.rose{border-color:var(--rose);color:var(--rose);background:var(--rose-dim);}.btn.rose:active{background:rgba(232,67,147,.25);}.btn.amber{border-color:var(--amber);color:var(--amber);background:var(--amber-dim);}.btn.ghost{background:transparent;border-color:var(--border);color:var(--muted);font-size:12px;padding:10px 16px;}
+.vote-btn{flex:1;min-height:140px;border:3px solid var(--border);border-radius:20px;background:var(--card);font-family:'Playfair Display',serif;font-size:22px;font-weight:900;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
+.vote-btn:active{transform:scale(.97);}.vote-btn.agree{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06);color:var(--green);}.vote-btn.agree:active{background:rgba(34,197,94,.18);}.vote-btn.disagree{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.06);color:var(--red);}.vote-btn.disagree:active{background:rgba(239,68,68,.18);}.vote-btn .vi{font-size:40px;}.vote-btn.voted{opacity:.4;pointer-events:none;}.vote-btn.chosen{opacity:1;border-width:4px;}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative;overflow:hidden;}.gcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--rose),var(--amber));opacity:.5;}
+.statement{font-family:'Playfair Display',serif;font-size:clamp(17px,4.5vw,28px);font-weight:700;font-style:italic;line-height:1.4;text-align:center;padding:16px 10px;color:var(--cream);}.statement::before{content:'« ';color:var(--rose);font-size:1.2em;}.statement::after{content:' »';color:var(--rose);font-size:1.2em;}
+.profile-area{width:100%;min-height:80px;padding:10px;background:var(--bg);border:2px dashed var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:none;outline:none;-webkit-user-select:text;user-select:text;}.profile-area:focus{border-color:var(--rose);border-style:solid;}
+.pip{width:12px;height:12px;border-radius:50%;display:inline-block;}.pip.p1{background:var(--rose);box-shadow:0 0 8px var(--rose);}.pip.p2{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.reveal-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:20px;text-align:center;animation:fadeUp .4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.conseq-btn{padding:16px 20px;border:2px solid var(--border);border-radius:14px;background:var(--card);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center;width:100%;}.conseq-btn:active{transform:scale(.97);}.conseq-btn.drink{border-color:var(--amber);color:var(--amber);}.conseq-btn.question{border-color:var(--rose);color:var(--rose);}
+.theme-btn{flex:1;padding:14px 6px;border:2px solid var(--border);border-radius:12px;background:var(--card);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;}.theme-btn:active{transform:scale(.96);background:var(--rose-dim);border-color:var(--rose);}
+.pbar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}.pbar .fill{height:100%;background:linear-gradient(90deg,var(--rose),var(--amber));transition:width .3s;border-radius:2px;}
+.loading-dots::after{content:'';animation:dots 1.5s steps(4) infinite;}@keyframes dots{0%{content:'';}25%{content:'.';}50%{content:'..';}75%{content:'...';}}
+.spill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}.spill.p1{background:var(--rose-dim);color:var(--rose);}.spill.p2{background:var(--amber-dim);color:var(--amber);}
+.skip-btn{position:fixed;top:12px;right:12px;z-index:50;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.6);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;}
+.disclaimer{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:11px;color:var(--muted);line-height:1.6;}.disclaimer strong{color:var(--rose);}
+/* Multi-image gallery */
+.img-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:6px;}
+.img-thumb{position:relative;width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg);}
+.img-thumb img{width:100%;height:100%;object-fit:cover;}
+.img-thumb .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.8);color:var(--red);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);}
+.img-add{width:100%;aspect-ratio:1;border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:22px;position:relative;transition:all .15s;}.img-add:active{border-color:var(--rose);}
+.img-add input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+/* Quiz questions */
+.quiz-q{font-size:14px;font-weight:700;margin-bottom:8px;text-align:center;}
+.quiz-opts{display:flex;gap:6px;margin-bottom:14px;}
+.quiz-opt{flex:1;padding:10px 4px;border:2px solid var(--border);border-radius:10px;background:var(--card);text-align:center;cursor:pointer;transition:all .15s;font-size:11px;font-weight:600;line-height:1.3;}
+.quiz-opt:active{transform:scale(.96);}.quiz-opt.sel{border-color:var(--rose);background:var(--rose-dim);color:var(--rose);}
+/* Collision reasoning */
+.collision-box{margin-top:8px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;text-align:left;}
+.collision-title{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;text-align:center;font-family:'JetBrains Mono',monospace;}
+.collision-item{display:flex;align-items:flex-start;gap:6px;padding:3px 0;font-size:11px;line-height:1.4;border-bottom:1px solid rgba(255,255,255,.03);}
+.collision-item:last-child{border-bottom:none;}
+.collision-balise{font-size:10px;font-weight:700;color:var(--rose);white-space:nowrap;min-width:70px;}
+.collision-detail{color:var(--muted);font-size:10px;}
+/* Roulette */
+.roulette{display:flex;gap:8px;justify-content:center;margin:10px 0;}
+.roulette-slot{width:80px;height:80px;border:3px solid var(--border);border-radius:14px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;transition:all .3s;opacity:.3;}
+.roulette-slot.active{border-color:var(--amber);opacity:1;box-shadow:0 0 20px rgba(245,158,11,.3);transform:scale(1.1);}
+.roulette-slot .rl{font-size:10px;font-weight:700;margin-top:2px;color:var(--muted);}
+.roulette-slot.active .rl{color:var(--amber);}
+/* Shield */
+.shield-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:10px;font-size:10px;font-weight:700;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.shield-btn{padding:14px 20px;border:2px solid var(--green);border-radius:14px;background:rgba(34,197,94,.08);color:var(--green);font-size:14px;font-weight:700;cursor:pointer;text-align:center;width:100%;transition:all .15s;}
+.shield-btn:active{transform:scale(.96);background:rgba(34,197,94,.2);}
+/* Codex */
+.codex-ov{position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;}
+.codex-ov.open{display:block;}
+.codex-bar{position:sticky;top:0;z-index:1;background:var(--bg);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.codex-tabs{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px;}
+.codex-tab{padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.codex-tab:active{transform:scale(.96);}
+.codex-tab.active{border-color:var(--rose);color:var(--rose);background:var(--rose-dim);}
+.codex-content{padding:14px;max-width:540px;margin:0 auto;font-size:12px;line-height:1.7;color:var(--text);}
+.codex-content h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:var(--rose);margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.codex-content h2:first-child{margin-top:0;}
+.codex-content h3{font-size:14px;font-weight:700;color:var(--amber);margin:14px 0 6px;}
+.codex-content p{margin-bottom:8px;}
+.codex-content .cb{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
+.codex-content .cb::before{display:none;}
+.codex-content .tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;}
+.codex-content .tag.a{background:rgba(232,67,147,.12);color:var(--rose);}
+.codex-content .tag.b{background:rgba(245,158,11,.1);color:var(--amber);}
+.codex-content .tag.c{background:rgba(34,197,94,.1);color:var(--green);}
+.codex-content .tag.d{background:rgba(139,92,246,.1);color:#a78bfa;}
+.codex-content .theme-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px;}
+.codex-content .theme-icon{font-size:16px;width:24px;text-align:center;}
+.codex-btn-float{position:fixed;bottom:14px;left:14px;z-index:50;width:40px;height:40px;border-radius:50%;background:var(--card);border:2px solid var(--border);color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.4);transition:all .15s;}
+.codex-btn-float:active{transform:scale(.9);border-color:var(--rose);}
+@media(max-width:480px){.vote-btn{min-height:110px;font-size:17px;}.statement{font-size:15px;}}
+/* Tag selector */
+.tag-cat-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:4px;}
+.tag-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.tag-pill{padding:5px 10px;border:1.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.tag-pill:active{transform:scale(.95);}
+.tag-pill.sel{border-color:var(--rose);color:var(--rose);background:var(--rose-dim);}
+.tag-count{font-size:11px;font-weight:700;text-align:right;margin-bottom:6px;}
+.coin{display:inline-block;font-size:48px;animation:coinSpin 1.5s ease-out;}
+@keyframes coinSpin{0%{transform:rotateY(0) scale(1);}50%{transform:rotateY(1080deg) scale(1.3);}100%{transform:rotateY(1440deg) scale(1);}}
+.lang-toggle{display:flex;gap:0;border:2px solid var(--border);border-radius:8px;overflow:hidden;width:100px;margin:0 auto 10px;}
+.lang-toggle button{flex:1;padding:6px 0;border:none;background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;}
+.lang-toggle button.active{background:var(--rose-dim);color:var(--rose);}
+/* Multi lobby */
+.lobby-code{font-family:'JetBrains Mono',monospace;font-size:clamp(28px,8vw,48px);font-weight:900;letter-spacing:8px;color:var(--rose);text-align:center;padding:12px;background:var(--card);border:2px solid var(--border);border-radius:12px;}
+.lobby-player{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;}
+.lobby-player .lp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.lobby-player .lp-dot.ready{background:var(--green);box-shadow:0 0 6px var(--green);}
+.lobby-player .lp-dot.waiting{background:var(--amber);animation:pulse 1.5s ease infinite;}
+.lobby-player .lp-name{flex:1;}
+.lobby-player .lp-status{font-size:10px;color:var(--muted);}
+.mode-btn{flex:1;padding:20px 10px;border:2px solid var(--border);border-radius:16px;background:var(--card);cursor:pointer;text-align:center;transition:all .15s;}
+.mode-btn:active{transform:scale(.96);border-color:var(--rose);}
+.mode-btn .mb-icon{font-size:32px;margin-bottom:6px;}
+.mode-btn .mb-title{font-size:14px;font-weight:700;color:var(--text);}
+.mode-btn .mb-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;font-size:12px;}
+.toggle-sw{width:40px;height:22px;border-radius:11px;background:var(--border);position:relative;cursor:pointer;transition:background .2s;}
+.toggle-sw.on{background:var(--rose);}
+.toggle-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--text);transition:transform .2s;}
+.toggle-sw.on::after{transform:translateX(18px);}
+.m-vote-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.m-pick-btn{padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:var(--card);cursor:pointer;text-align:center;font-size:13px;font-weight:700;transition:all .15s;}
+.m-pick-btn:active{transform:scale(.96);border-color:var(--rose);background:var(--rose-dim);color:var(--rose);}
+</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<!-- MENU -->
+<div id="menu" class="S active">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+<div style="font-size:48px;margin-bottom:8px;">🪞</div>
+<div class="serif" style="font-size:clamp(32px,9vw,52px);font-weight:900;background:linear-gradient(180deg,var(--rose),var(--wine));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;">BLACK<br>MIRROR</div>
+<div class="mono" style="font-size:10px;letter-spacing:4px;color:var(--muted);margin-top:6px;margin-bottom:10px;" id="tTagline">L'IA VOUS CONNAÎT MIEUX QUE VOUS</div>
+<div class="lang-toggle" style="margin-bottom:30px;"><button id="btnLangFR" class="active">FR</button><button id="btnLangEN">EN</button></div>
+<div style="width:280px;display:flex;gap:10px;margin-bottom:10px;">
+<div class="mode-btn" id="btnModeDuo">
+<div class="mb-icon">🎭</div>
+<div class="mb-title">DUO</div>
+<div class="mb-sub" data-t="duo_sub">Même téléphone</div>
+</div>
+<div class="mode-btn" id="btnModeMulti">
+<div class="mb-icon">🌐</div>
+<div class="mb-title">MULTI</div>
+<div class="mb-sub" data-t="multi_sub">Chacun son écran</div>
+</div>
+</div>
+<button class="btn ghost" id="btnCodexMenu" style="font-size:11px;width:280px;" data-t="codex_btn">📖 CODEX — Règles & Systèmes</button>
+<div class="mono" style="font-size:8px;color:var(--muted);margin-top:40px;letter-spacing:2px;">BLACK FLAG ENGINE v1.0</div>
+</div></div>
+
+<!-- DISCLAIMER -->
+<div id="disclaimer" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;max-width:440px;margin:0 auto;width:100%;gap:14px;">
+<div style="font-size:32px;">⚠️</div>
+<div class="serif" style="font-size:18px;font-weight:900;text-align:center;" data-t="before_start">AVANT DE COMMENCER</div>
+<div class="disclaimer">
+<strong>Black Mirror</strong> utilise l'IA comme <strong>avatar cynique</strong>. Elle génère des opinions tranchées sur le monde ("Je pense que...") secrètement calibrées par vos photos et tags pour créer des <strong>hot takes</strong> piquantes mais inclusives.<br><br>
+<strong>La Triche :</strong> L'IA classe vos photos en 5 dossiers, confronte vos réponses quiz à vos images, puis cherche sur le web les critiques les plus clivantes de 2026. C'est du <strong>débat ludique</strong>, pas un jugement.<br><br>
+<strong>Vos données :</strong> Envoyées une fois à Google Gemini pour analyse, puis supprimées de la mémoire du jeu. Rien n'est stocké.<br><br>
+<strong>L'IA ne touche JAMAIS :</strong> apparence physique, race, religion, orientation, handicap, santé mentale.<br><br>
+<strong>Bouton SKIP</strong> disponible à tout moment pour passer une affirmation.
+</div>
+<button class="btn rose" id="btnAccept" data-t="accept">J'AI COMPRIS, ON JOUE</button>
+<button class="btn ghost" id="btnDecline" data-t="cancel">Annuler</button>
+</div></div>
+
+<!-- RULES -->
+<div id="rules" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;max-width:460px;margin:0 auto;width:100%;gap:12px;overflow-y:auto;">
+<div style="font-size:28px;">📋</div>
+<div class="serif" style="font-size:18px;font-weight:900;text-align:center;" data-t="how_it_works">COMMENT ÇA MARCHE</div>
+
+<div class="gcard" style="width:100%;text-align:center;">
+<div style="font-size:24px;margin-bottom:4px;">1️⃣</div>
+<div style="font-weight:700;font-size:14px;margin-bottom:4px;color:var(--rose);">PROFILAGE</div>
+<div style="font-size:12px;color:var(--muted);line-height:1.5;">Chaque joueur entre son prénom, classe ses photos dans 5 dossiers de preuves (MOI, LIEUX, LOISIRS, ÉCRANS, CHATS) et répond à 7 questions rapides. L'IA analyse tout pour trouver vos failles.</div>
+</div>
+
+<div class="gcard" style="width:100%;text-align:center;">
+<div style="font-size:24px;margin-bottom:4px;">2️⃣</div>
+<div style="font-weight:700;font-size:14px;margin-bottom:4px;color:var(--amber);">HOT TAKES</div>
+<div style="font-size:12px;color:var(--muted);line-height:1.5;">L'IA génère 20 opinions provocantes sur des sujets variés (cinéma, argent, couple, etc.). Chaque hot take est secrètement ciblée vers l'un des deux joueurs.</div>
+</div>
+
+<div class="gcard" style="width:100%;text-align:center;">
+<div style="font-size:24px;margin-bottom:4px;">3️⃣</div>
+<div style="font-weight:700;font-size:14px;margin-bottom:4px;color:var(--green);">VOTE</div>
+<div style="font-size:12px;color:var(--muted);line-height:1.5;">Chacun vote <strong>D'ACCORD</strong> ou <strong>PAS D'ACCORD</strong> sur chaque hot take, sans savoir qui est ciblé. Passez le téléphone entre chaque vote.</div>
+</div>
+
+<div class="gcard" style="width:100%;text-align:center;">
+<div style="font-size:24px;margin-bottom:4px;">4️⃣</div>
+<div style="font-weight:700;font-size:14px;margin-bottom:4px;color:var(--cream);">RÉVÉLATION</div>
+<div style="font-size:12px;color:var(--muted);line-height:1.5;">On révèle qui était ciblé. <strong style="color:var(--red);">PAS D'ACCORD</strong> sur sa hot take → pari du bouclier possible, sinon <strong>🎰 Roulette</strong> (shot ou question). <strong style="color:var(--green);">D'ACCORD</strong> → +1 pt + Roulette pour l'autre.<br><br>🛡️ <strong>Bouclier</strong> : gagné lors d'une Résonance (les 2 d'accord sur une Loi Universelle). Pariable en défense.<br><br>🏆 <strong>Premier à 10 points</strong> gagne !</div>
+</div>
+
+<button class="btn rose" style="width:100%;" id="btnRulesOk" data-t="lets_go">C'EST PARTI 🪞</button>
+</div></div>
+
+<!-- SETUP P1: Profil -->
+<div id="setup1" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:12px;"><span class="pip p1"></span><span class="serif" style="font-size:16px;font-weight:700;margin-left:6px;">Joueur 1 — Profil</span></div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="display:flex;gap:8px;">
+<div style="flex:2;">
+<div style="font-weight:700;margin-bottom:4px;font-size:12px;">Prénom</div>
+<input id="name1" type="text" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;" placeholder="Prénom" maxlength="20">
+</div>
+<div style="flex:1;">
+<div style="font-weight:700;margin-bottom:4px;font-size:12px;">Âge</div>
+<input id="age1" type="number" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;text-align:center;" placeholder="28" min="16" max="99">
+</div>
+</div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="font-weight:700;margin-bottom:2px;font-size:12px;"><span data-t="evidence">📸 PIÈCES À CONVICTION</span> <span style="color:var(--muted);font-weight:400;" data-t="evidence_sub">3 photos max par dossier</span></div>
+<div id="uploadGrid1" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+</div>
+<div class="gcard">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+<div style="font-weight:700;font-size:12px;"><span data-t="facade_title">🏷️ FAÇADE — Mots-Clés</span></div>
+<div id="tagCount1" class="tag-count" style="color:var(--rose);">0/20</div>
+</div>
+<div style="font-size:9px;color:var(--muted);margin-bottom:8px;"><span data-t="facade_sub"><span data-t="facade_sub">Choisis jusqu'à 20 mots-clés. C'est ta façade — l'IA va la déconstruire.</span></span></div>
+<div id="tagSelector1"></div>
+</div>
+<button class="btn rose" style="margin-top:10px;" id="btnToQuiz1" data-t="next_quiz">SUIVANT → QUESTIONS RAPIDES</button>
+</div></div>
+
+<!-- QUIZ P1: 5 questions -->
+<div id="quiz1" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:14px;"><span class="pip p1"></span><span class="serif" style="font-size:16px;font-weight:700;margin-left:6px;">Joueur 1 — 7 Questions</span></div>
+<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">Répondez vite, à l'instinct !</div>
+<div id="quizBody1"></div>
+<button class="btn rose" style="margin-top:8px;" id="btnNext1" data-t="next_pass">SUIVANT → PASSER LE TÉLÉPHONE 📱</button>
+</div></div>
+
+<!-- SETUP P2: Profil -->
+<div id="setup2" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:12px;"><span class="pip p2"></span><span class="serif" style="font-size:16px;font-weight:700;margin-left:6px;">Joueur 2 — Profil</span></div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="display:flex;gap:8px;">
+<div style="flex:2;">
+<div style="font-weight:700;margin-bottom:4px;font-size:12px;">Prénom</div>
+<input id="name2" type="text" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;" placeholder="Prénom" maxlength="20">
+</div>
+<div style="flex:1;">
+<div style="font-weight:700;margin-bottom:4px;font-size:12px;">Âge</div>
+<input id="age2" type="number" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;text-align:center;" placeholder="28" min="16" max="99">
+</div>
+</div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="font-weight:700;margin-bottom:2px;font-size:12px;"><span data-t="evidence">📸 PIÈCES À CONVICTION</span> <span style="color:var(--muted);font-weight:400;" data-t="evidence_sub">3 photos max par dossier</span></div>
+<div id="uploadGrid2" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+</div>
+<div class="gcard">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+<div style="font-weight:700;font-size:12px;"><span data-t="facade_title">🏷️ FAÇADE — Mots-Clés</span></div>
+<div id="tagCount2" class="tag-count" style="color:var(--amber);">0/20</div>
+</div>
+<div style="font-size:9px;color:var(--muted);margin-bottom:8px;">Choisis jusqu'à 20 mots-clés. C'est ta façade — l'IA va la déconstruire.</div>
+<div id="tagSelector2"></div>
+</div>
+<button class="btn rose" style="margin-top:10px;" id="btnToQuiz2" data-t="next_quiz">SUIVANT → QUESTIONS RAPIDES</button>
+</div></div>
+
+<!-- QUIZ P2 -->
+<div id="quiz2" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:14px;"><span class="pip p2"></span><span class="serif" style="font-size:16px;font-weight:700;margin-left:6px;">Joueur 2 — 7 Questions</span></div>
+<div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:12px;">Répondez vite, à l'instinct !</div>
+<div id="quizBody2"></div>
+<button class="btn rose" style="margin-top:8px;" id="btnGenerate" data-t="generate">🪞 GÉNÉRER LES MIROIRS</button>
+</div></div>
+
+<!-- LOADING -->
+<div id="loading" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+<div style="font-size:56px;margin-bottom:16px;animation:pulse 1.5s ease infinite;">🪞</div>
+<div class="serif" style="font-size:20px;font-weight:700;margin-bottom:8px;"><span data-t="analyzing">Le Miroir analyse</span><span class="loading-dots"></span></div>
+<div style="font-size:11px;color:var(--muted);max-width:280px;" id="loadMsg">Classification des pièces à conviction, détection de dissonances, curation de venin sur le web...</div>
+<div id="loadError" style="color:var(--red);font-size:11px;margin-top:14px;display:none;"></div>
+<button class="btn ghost" style="margin-top:16px;width:auto;" id="btnLoadCancel" data-t="cancel">Annuler</button>
+</div></div>
+
+<!-- VOTE -->
+<div id="vote" class="S">
+<button class="skip-btn" id="btnSkip">SKIP ⏭️</button>
+<div style="padding:10px 14px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span class="spill p1" id="vScore1">—:0</span><span class="mono" style="font-size:10px;color:var(--muted);" id="vProgress">1/20</span><span class="spill p2" id="vScore2">—:0</span></div><div class="pbar"><div class="fill" id="vBar" style="width:0%;"></div></div></div>
+<div id="voterLabel" style="text-align:center;padding:4px;font-size:12px;font-weight:700;"></div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:6px 14px;"><div class="statement" id="vStatement">...</div></div>
+<div style="padding:10px 14px 20px;display:flex;gap:10px;" id="voteArea"><div class="vote-btn agree" id="btnAgree"><div class="vi">👍</div><span data-t="agree">D'ACCORD</span></div><div class="vote-btn disagree" id="btnDisagree"><div class="vi">👎</div><span data-t="disagree">PAS D'ACCORD</span></div></div>
+<div id="vWaiting" style="display:none;text-align:center;padding:14px;color:var(--muted);font-size:12px;"></div>
+</div>
+
+<!-- REVEAL -->
+<div id="reveal" class="S">
+<button class="skip-btn" id="btnSkip2">SKIP ⏭️</button>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;">
+<div class="reveal-card" style="max-width:400px;width:100%;">
+<div style="font-size:11px;color:var(--muted);margin-bottom:6px;" data-t="mirror_targeted">LE MIROIR VISAIT...</div>
+<div class="serif" style="font-size:24px;font-weight:900;margin-bottom:4px;" id="rSource">—</div>
+<div style="font-size:12px;font-style:italic;color:var(--muted);margin-bottom:12px;" id="rStatement">—</div>
+<div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px;"><div id="rVote1" style="padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;"></div><div id="rVote2" style="padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;"></div></div>
+<div class="serif" style="font-size:15px;font-weight:700;" id="rVerdict">—</div>
+<div id="rCollision" style="margin-top:10px;display:none;"></div>
+</div>
+<div id="conseqArea" style="max-width:400px;width:100%;display:none;"><div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px;" id="conseqLabel">—</div><div id="conseqBtns" style="display:flex;flex-direction:column;gap:6px;"></div></div>
+<button class="btn rose" style="max-width:400px;" id="btnNextQ" data-t="next_q">SUIVANTE →</button>
+</div></div>
+
+<!-- END -->
+<div id="endScreen" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+<div style="font-size:48px;margin-bottom:10px;">🪞✨</div>
+<div class="serif" style="font-size:26px;font-weight:900;margin-bottom:6px;" data-t="game_over">FIN DU BLACK MIRROR</div>
+<div style="font-size:13px;color:var(--muted);margin-bottom:20px;" data-t="know_better">Vous vous connaissez un peu mieux...</div>
+<div id="endScores" style="margin-bottom:20px;"></div>
+<button class="btn rose" id="btnReplay" data-t="replay">REJOUER</button>
+</div></div>
+
+
+<!-- MULTI: Host or Join -->
+<div id="multiChoice" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;">
+<div style="font-size:32px;">🌐</div>
+<div class="serif" style="font-size:20px;font-weight:900;" data-t="multi_title">MULTIJOUEUR</div>
+<div style="width:260px;display:flex;gap:10px;">
+<div class="mode-btn" id="btnHost">
+<div class="mb-icon">👑</div>
+<div class="mb-title" data-t="create_lobby">CRÉER</div>
+<div class="mb-sub" data-t="host_sub">Héberger la partie</div>
+</div>
+<div class="mode-btn" id="btnJoin">
+<div class="mb-icon">🔗</div>
+<div class="mb-title" data-t="join_lobby">REJOINDRE</div>
+<div class="mb-sub" data-t="join_sub">Entrer un code</div>
+</div>
+</div>
+<button class="btn ghost" style="width:260px;" onclick="showS('menu')" data-t="back">← Retour</button>
+</div></div>
+
+<!-- MULTI: Host Lobby -->
+<div id="hostLobby" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:12px;">
+<div style="font-size:10px;color:var(--muted);margin-bottom:4px;" data-t="lobby_code_label">CODE DE LA PARTIE</div>
+<div class="lobby-code" id="lobbyCode">...</div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="font-weight:700;font-size:12px;margin-bottom:8px;" data-t="players_title">Joueurs connectés</div>
+<div id="lobbyPlayers" style="display:flex;flex-direction:column;gap:6px;"></div>
+<div style="font-size:10px;color:var(--muted);text-align:center;margin-top:8px;" id="lobbyWaiting" data-t="waiting_players">En attente de joueurs...</div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="font-weight:700;font-size:12px;margin-bottom:6px;" data-t="host_settings">Paramètres</div>
+<div class="toggle-row"><span data-t="host_plays">L'hôte joue aussi</span><div class="toggle-sw on" id="togHostPlays"></div></div>
+<div class="toggle-row"><span data-t="photos_required">Photos requises</span><div class="toggle-sw" id="togPhotos"></div></div>
+</div>
+<button class="btn rose" id="btnHostStart" style="opacity:.4;pointer-events:none;" data-t="launch_game">🪞 LANCER LA PARTIE</button>
+</div></div>
+
+<!-- MULTI: Join -->
+<div id="joinLobby" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:14px;">
+<div style="font-size:32px;">🔗</div>
+<div class="serif" style="font-size:18px;font-weight:900;" data-t="enter_code">ENTRER LE CODE</div>
+<input id="joinCode" type="text" class="profile-area" style="min-height:auto;padding:12px;font-size:24px;text-align:center;letter-spacing:6px;max-width:240px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;" placeholder="CODE" maxlength="6">
+<button class="btn rose" style="max-width:240px;" id="btnJoinConnect" data-t="connect">SE CONNECTER</button>
+<div id="joinError" style="color:var(--red);font-size:11px;display:none;"></div>
+<button class="btn ghost" style="max-width:240px;" onclick="showS('multiChoice')" data-t="back">← Retour</button>
+</div></div>
+
+<!-- MULTI: Player Setup (on each phone) -->
+<div id="multiSetup" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;max-width:500px;margin:0 auto;width:100%;overflow-y:auto;">
+<div style="text-align:center;margin-bottom:12px;">
+<div class="serif" style="font-size:16px;font-weight:700;" data-t="your_profile">Ton Profil</div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="display:flex;gap:8px;">
+<div style="flex:2;"><div style="font-weight:700;margin-bottom:4px;font-size:12px;" data-t="firstname">Prénom</div>
+<input id="mName" type="text" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;" placeholder="Prénom" maxlength="20"></div>
+<div style="flex:1;"><div style="font-weight:700;margin-bottom:4px;font-size:12px;" data-t="age_label">Âge</div>
+<input id="mAge" type="number" class="profile-area" style="min-height:auto;padding:8px;font-size:15px;text-align:center;" placeholder="28" min="16" max="99"></div>
+</div></div>
+<div class="gcard" style="margin-bottom:8px;" id="mPhotoSection">
+<div style="font-weight:700;margin-bottom:2px;font-size:12px;"><span data-t="evidence">📸 PIÈCES À CONVICTION</span> <span style="color:var(--muted);font-weight:400;" data-t="evidence_sub">3 photos max par dossier</span></div>
+<div id="mUploadGrid" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;"></div>
+</div>
+<div class="gcard" style="margin-bottom:8px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+<div style="font-weight:700;font-size:12px;"><span data-t="facade_title">🏷️ FAÇADE — Mots-Clés</span></div>
+<div id="mTagCount" class="tag-count" style="color:var(--rose);">0/20</div>
+</div>
+<div style="font-size:9px;color:var(--muted);margin-bottom:8px;"><span data-t="facade_sub">Choisis jusqu'à 20 mots-clés.</span></div>
+<div id="mTagSelector"></div>
+</div>
+<div style="font-size:11px;color:var(--muted);text-align:center;margin:6px 0;" data-t="quiz_instinct">Répondez vite, à l'instinct !</div>
+<div id="mQuizBody"></div>
+<button class="btn rose" style="margin-top:10px;" id="btnMultiReady" data-t="ready">✅ PRÊT</button>
+</div></div>
+
+<!-- MULTI: Waiting for host -->
+<div id="multiWait" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+<div style="font-size:48px;margin-bottom:12px;animation:pulse 1.5s ease infinite;">🪞</div>
+<div class="serif" style="font-size:18px;font-weight:700;" data-t="waiting_host">En attente de l'hôte...</div>
+<div style="font-size:11px;color:var(--muted);margin-top:6px;" id="mWaitMsg" data-t="profiling_done">Profil envoyé !</div>
+</div></div>
+
+<!-- MULTI: Vote -->
+<div id="multiVote" class="S">
+<div style="flex:1;display:flex;flex-direction:column;padding:14px;">
+<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px;" id="mVoteRound">1/27</div>
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:6px 14px;">
+<div class="statement" id="mVoteStatement">...</div>
+</div>
+<div style="padding:10px 14px 20px;display:flex;gap:10px;">
+<div class="vote-btn agree" id="mBtnAgree"><div class="vi">👍</div><span data-t="agree">D'ACCORD</span></div>
+<div class="vote-btn disagree" id="mBtnDisagree"><div class="vi">👎</div><span data-t="disagree">PAS D'ACCORD</span></div>
+</div>
+<div id="mVoteWaiting" style="display:none;text-align:center;padding:14px;color:var(--muted);font-size:12px;animation:pulse 1.5s ease infinite;" data-t="waiting_votes">En attente des votes...</div>
+</div></div>
+
+<!-- MULTI: Reveal -->
+<div id="multiReveal" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;">
+<div class="reveal-card" style="max-width:400px;width:100%;">
+<div style="font-size:11px;color:var(--muted);margin-bottom:6px;" data-t="mirror_targeted">LE MIROIR VISAIT...</div>
+<div class="serif" style="font-size:24px;font-weight:900;margin-bottom:4px;" id="mRevealTarget">—</div>
+<div style="font-size:12px;font-style:italic;color:var(--muted);margin-bottom:12px;" id="mRevealText">—</div>
+<div id="mRevealVotes" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:8px;"></div>
+<div class="serif" style="font-size:15px;font-weight:700;" id="mRevealVerdict">—</div>
+</div>
+<div id="mRevealAction" style="max-width:400px;width:100%;display:none;"></div>
+<button class="btn rose" style="max-width:400px;" id="mBtnNext" data-t="next_q">SUIVANTE →</button>
+</div></div>
+
+<!-- MULTI: Choose target (winner picks) -->
+<div id="multiChoose" class="S">
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;">
+<div class="serif" style="font-size:16px;font-weight:900;text-align:center;" id="mChooseTitle">Choisis qui prend la sanction</div>
+<div id="mChooseGrid" style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;"></div>
+</div></div>
+
+<!-- OVERLAYS -->
+<div id="ovTheme" class="S" style="display:none;position:fixed;inset:0;background:rgba(13,10,14,.95);z-index:100;align-items:center;justify-content:center;"></div>
+
+<!-- FLOATING CODEX BUTTON (visible during gameplay) -->
+<button class="codex-btn-float" id="btnCodexFloat" title="Codex">📖</button>
+
+<!-- CODEX OVERLAY -->
+<div class="codex-ov" id="codexOv">
+<div class="codex-bar">
+<div class="serif" style="font-size:14px;font-weight:900;color:var(--rose);">📖 CODEX</div>
+<button class="btn ghost" style="width:auto;padding:6px 14px;" id="btnCodexClose">✕ Fermer</button>
+</div>
+<div class="codex-tabs" id="codexTabs"></div>
+<div class="codex-content" id="codexBody"></div>
+</div>
+
+<script>
+// ================================================================
+//  STATE
+// ================================================================
+const ST={lang:'fr',p1:{name:'',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{},score:0,shield:0},p2:{name:'',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{},score:0,shield:0},stmts:[],ci:0,votes:{},voter:1};
+const $=id=>document.getElementById(id);
+
+// ================================================================
+//  i18n — FR/EN Translation System
+// ================================================================
+const T={
+    // UI
+    tagline:{fr:"L'IA VOUS CONNAÎT MIEUX QUE VOUS",en:"THE AI KNOWS YOU BETTER THAN YOU"},
+    start:{fr:"COMMENCER",en:"START"},
+    codex_btn:{fr:"📖 CODEX — Règles & Systèmes",en:"📖 CODEX — Rules & Systems"},
+    before_start:{fr:"AVANT DE COMMENCER",en:"BEFORE WE START"},
+    accept:{fr:"J'AI COMPRIS, ON JOUE",en:"GOT IT, LET'S PLAY"},
+    cancel:{fr:"Annuler",en:"Cancel"},
+    how_it_works:{fr:"COMMENT ÇA MARCHE",en:"HOW IT WORKS"},
+    lets_go:{fr:"C'EST PARTI 🪞",en:"LET'S GO 🪞"},
+    next_quiz:{fr:"SUIVANT → QUESTIONS RAPIDES",en:"NEXT → QUICK QUESTIONS"},
+    next_pass:{fr:"SUIVANT → PASSER LE TÉLÉPHONE 📱",en:"NEXT → PASS THE PHONE 📱"},
+    generate:{fr:"🪞 GÉNÉRER LES MIROIRS",en:"🪞 GENERATE THE MIRRORS"},
+    agree:{fr:"D'ACCORD",en:"AGREE"},
+    disagree:{fr:"PAS D'ACCORD",en:"DISAGREE"},
+    mirror_targeted:{fr:"LE MIROIR VISAIT...",en:"THE MIRROR WAS TARGETING..."},
+    analyzing:{fr:"Le Miroir analyse",en:"The Mirror is analyzing"},
+    game_over:{fr:"FIN DU BLACK MIRROR",en:"END OF BLACK MIRROR"},
+    know_better:{fr:"Vous vous connaissez un peu mieux...",en:"You know each other a little better..."},
+    replay:{fr:"REJOUER",en:"PLAY AGAIN"},
+    next_q:{fr:"SUIVANTE →",en:"NEXT →"},
+    // Setup
+    player_profile:{fr:"— Profil",en:"— Profile"},
+    player_questions:{fr:"— 7 Questions",en:"— 7 Questions"},
+    firstname:{fr:"Prénom",en:"First name"},
+    age_label:{fr:"Âge",en:"Age"},
+    evidence:{fr:"📸 PIÈCES À CONVICTION",en:"📸 EVIDENCE FILES"},
+    evidence_sub:{fr:"3 photos max par dossier",en:"3 photos max per folder"},
+    facade_title:{fr:"🏷️ FAÇADE — Mots-Clés",en:"🏷️ FAÇADE — Keywords"},
+    facade_sub:{fr:"Choisis jusqu'à 20 mots-clés. C'est ta façade — l'IA va la déconstruire.",en:"Pick up to 20 keywords. This is your facade — the AI will deconstruct it."},
+    quiz_instinct:{fr:"Répondez vite, à l'instinct !",en:"Answer fast, go with your gut!"},
+    // Vote/Reveal
+    vote_now:{fr:", votez !",en:", vote!"},
+    pass_to:{fr:"📱 Passez à",en:"📱 Pass to"},
+    universal_law:{fr:"🌀 LOI UNIVERSELLE",en:"🌀 UNIVERSAL LAW"},
+    resonance:{fr:"✨ <strong>RÉSONANCE</strong> — 🛡️ +1 Bouclier chacun !",en:"✨ <strong>RESONANCE</strong> — 🛡️ +1 Shield each!"},
+    double_denial:{fr:"💀 Double déni. 1 shot chacun.",en:"💀 Double denial. 1 shot each."},
+    is_lucid:{fr:" est lucide. Roulette...",en:" sees clearly. Roulette..."},
+    denies:{fr:" nie l'évidence !",en:" denies the obvious!"},
+    shield_bet:{fr:", pariez votre bouclier ?",en:", bet your shield?"},
+    owns_it:{fr:" assume ! Roulette pour ",en:" owns it! Roulette for "},
+    shield_activated:{fr:"🛡️ <strong>BOUCLIER ACTIVÉ !</strong> Sauvé !",en:"🛡️ <strong>SHIELD ACTIVATED!</strong> Saved!"},
+    shield_broken:{fr:"💥 <strong>BRISÉ !</strong> -1 pt.",en:"💥 <strong>BROKEN!</strong> -1 pt."},
+    bet_shot:{fr:"🛡️ Parier sur SHOT (éviter de boire)",en:"🛡️ Bet on SHOT (avoid drinking)"},
+    bet_question:{fr:"🛡️ Parier sur QUESTION (éviter la question)",en:"🛡️ Bet on QUESTION (avoid the question)"},
+    no_bet:{fr:"Pas de pari — roulette directe",en:"No bet — straight to roulette"},
+    drinks:{fr:" boit !",en:" drinks!"},
+    picks_theme:{fr:" choisit le thème :",en:" picks the theme:"},
+    theme_label:{fr:"Thème :",en:"Theme:"},
+    refusal:{fr:"Refus = 1 shot",en:"Refusal = 1 shot"},
+    question_to:{fr:", question ",en:", question "},
+    collision_title:{fr:"🪞 La Triche du Miroir",en:"🪞 The Mirror's Trick"},
+    loading_msg:{fr:"Classification des pièces à conviction, détection de dissonances, curation de venin sur le web...",en:"Classifying evidence, detecting dissonance, curating hot takes from the web..."},
+    // Upload categories
+    cat_moi:{fr:"🤳 MOI",en:"🤳 ME"},
+    cat_moi_sub:{fr:"Selfies, outfits, ego-portrait",en:"Selfies, outfits, ego-portrait"},
+    cat_lieux:{fr:"🌍 LIEUX",en:"🌍 PLACES"},
+    cat_lieux_sub:{fr:"Voyages, rues, architecture",en:"Travel, streets, architecture"},
+    cat_loisirs:{fr:"🎨 LOISIRS",en:"🎨 HOBBIES"},
+    cat_loisirs_sub:{fr:"Passions, hobbies, sport",en:"Passions, hobbies, sport"},
+    cat_ecrans:{fr:"📱 ÉCRANS",en:"📱 SCREENS"},
+    cat_ecrans_sub:{fr:"Apps, notifications, screen time",en:"Apps, notifications, screen time"},
+    cat_chats:{fr:"💬 CHATS",en:"💬 CHATS"},
+    cat_chats_sub:{fr:"Conversations, textes, bios",en:"Conversations, texts, bios"},
+    // Tag categories
+    tcat_moi:{fr:"👤 MOI (Identité)",en:"👤 ME (Identity)"},
+    tcat_loisirs:{fr:"🎨 LOISIRS (Passions)",en:"🎨 HOBBIES (Passions)"},
+    tcat_lieux:{fr:"🏙️ LIEUX (Habitudes)",en:"🏙️ PLACES (Habits)"},
+    tcat_digital:{fr:"📱 DIGITAL (Usage)",en:"📱 DIGITAL (Usage)"},
+    tcat_vibe:{fr:"⚖️ VIBE (Social)",en:"⚖️ VIBE (Social)"},
+    // Theme buttons
+    theme_perso:{fr:"🧠 Perso",en:"🧠 Personal"},
+    theme_spicy:{fr:"🌶️ Spicy",en:"🌶️ Spicy"},
+    theme_goofy:{fr:"🤪 Goofy",en:"🤪 Goofy"},
+    // Multi
+    duo_sub:{fr:"Même téléphone",en:"Same phone"},
+    multi_sub:{fr:"Chacun son écran",en:"Each on their phone"},
+    multi_title:{fr:"MULTIJOUEUR",en:"MULTIPLAYER"},
+    create_lobby:{fr:"CRÉER",en:"CREATE"},
+    host_sub:{fr:"Héberger la partie",en:"Host the game"},
+    join_lobby:{fr:"REJOINDRE",en:"JOIN"},
+    join_sub:{fr:"Entrer un code",en:"Enter a code"},
+    back:{fr:"← Retour",en:"← Back"},
+    lobby_code_label:{fr:"CODE DE LA PARTIE",en:"GAME CODE"},
+    players_title:{fr:"Joueurs connectés",en:"Connected players"},
+    waiting_players:{fr:"En attente de joueurs...",en:"Waiting for players..."},
+    host_settings:{fr:"Paramètres",en:"Settings"},
+    host_plays:{fr:"L'hôte joue aussi",en:"Host plays too"},
+    photos_required:{fr:"Photos requises",en:"Photos required"},
+    launch_game:{fr:"🪞 LANCER LA PARTIE",en:"🪞 START THE GAME"},
+    enter_code:{fr:"ENTRER LE CODE",en:"ENTER THE CODE"},
+    connect:{fr:"SE CONNECTER",en:"CONNECT"},
+    your_profile:{fr:"Ton Profil",en:"Your Profile"},
+    ready:{fr:"✅ PRÊT",en:"✅ READY"},
+    waiting_host:{fr:"En attente de l'hôte...",en:"Waiting for host..."},
+    profiling_done:{fr:"Profil envoyé !",en:"Profile sent!"},
+    waiting_votes:{fr:"En attente des votes...",en:"Waiting for votes..."},
+};
+
+function t(key){return T[key]?T[key][ST.lang]||T[key].fr:key;}
+
+function applyLang(){
+    // Update all data-t elements
+    document.querySelectorAll('[data-t]').forEach(el=>{
+        const k=el.dataset.t;
+        if(T[k]) el.textContent=t(k);
+    });
+    // Special: tagline
+    const tl=$('tTagline');if(tl) tl.textContent=t('tagline');
+    // Special: loading msg
+    const lm=$('loadMsg');if(lm) lm.textContent=t('loading_msg');
+    // Update lang toggle buttons
+    document.querySelectorAll('.lang-toggle button').forEach(b=>b.classList.remove('active'));
+    const lb=$(ST.lang==='fr'?'btnLangFR':'btnLangEN');if(lb) lb.classList.add('active');
+    // Re-render dynamic sections
+    renderUploadSections('p1');renderUploadSections('p2');
+    renderTagSelector('tagSelector1','tagCount1','p1');
+    renderTagSelector('tagSelector2','tagCount2','p2');
+    renderQuiz('quizBody1','p1');renderQuiz('quizBody2','p2');
+}
+function showS(id){document.querySelectorAll('.S').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+
+// ================================================================
+//  QUIZ — Banque de 25 questions, 7 piochées au hasard par joueur
+// ================================================================
+const QUIZ_BANK=[
+    {id:'samedi',q:'Un samedi soir parfait ?',opts:['🏠 Netflix & canapé','🍸 Sortie entre amis','🌙 Aventure improvisée']},
+    {id:'conflit',q:'Face à un désaccord ?',opts:['🤝 Discussion directe','⏳ Laisser passer','🔥 Confrontation frontale']},
+    {id:'temps',q:'Ton rapport au temps ?',opts:['⏰ Toujours en avance','😅 Chroniquement en retard','🎯 Pile à l\'heure']},
+    {id:'cuisine',q:'En cuisine ?',opts:['👨‍🍳 Chef passionné','📱 Uber Eats fidèle','🍝 Survie alimentaire']},
+    {id:'reseaux',q:'Tes réseaux sociaux ?',opts:['📸 Feed curé avec soin','🌪️ Chaos total','👻 Mode fantôme']},
+    {id:'argent',q:'Ton rapport à l\'argent ?',opts:['💰 Économe stratégique','🛍️ Dépensier assumé','🤷 J\'y pense pas']},
+    {id:'ego',q:'Ton ego en soirée ?',opts:['👑 J\'adore briller','🫥 Profil bas','🎭 Ça dépend de l\'audience']},
+    {id:'travail',q:'Le travail dans ta vie ?',opts:['🔥 Hustle mode','⚖️ Équilibre sacré','😴 Le strict nécessaire']},
+    {id:'nuit',q:'Ton rapport à la nuit ?',opts:['🦉 Créature nocturne','🌅 Couché à 22h','🎲 Selon l\'humeur']},
+    {id:'sport',q:'Toi et le sport ?',opts:['💪 Routine sacrée','🏃 De temps en temps','🛋️ Mon sport c\'est le canap']},
+    {id:'amour',q:'L\'amour en un mot ?',opts:['💕 Grand romantique','🧊 Pragmatique','🎢 Compliqué']},
+    {id:'digital',q:'Ton screen time ?',opts:['📱 Honteux','⏱️ Raisonnable','🚫 Digital detox']},
+    {id:'voyage',q:'Ton style de voyage ?',opts:['📋 Tout planifié','🎒 Sac à dos freestyle','🏖️ All-inclusive']},
+    {id:'musique',q:'Ta musique en soirée ?',opts:['🎧 DJ autoproclamé','🤷 Je subis','🎵 Éclectique']},
+    {id:'mode',q:'Ton rapport à la mode ?',opts:['👔 Toujours soigné','👕 Confort avant tout','🖤 Un style bien à moi']},
+    {id:'alcool',q:'Toi et l\'alcool ?',opts:['🍷 Épicurien','🍺 Social drinker','🚰 Sobre']},
+    {id:'animal',q:'Si tu étais un animal ?',opts:['🐺 Loup solitaire','🐕 Chien fidèle','🦊 Renard malin']},
+    {id:'matin',q:'Le matin, tu es ?',opts:['☀️ Lever de soleil','☕ Pas avant le café','😤 Dangereux']},
+    {id:'secret',q:'Tu gardes bien les secrets ?',opts:['🤐 Coffre-fort','😬 Ça dépend','📢 Passoire totale']},
+    {id:'critique',q:'Face à la critique ?',opts:['🛡️ Blindé','💔 Sensible','🔄 J\'en tire des leçons']},
+    {id:'rangement',q:'Ton espace de vie ?',opts:['✨ Marie Kondo','🌀 Chaos organisé','🗑️ Zone sinistrée']},
+    {id:'engagement',q:'Ton engagement citoyen ?',opts:['✊ Militant actif','🗳️ Je vote et c\'est tout','😶 Désabusé']},
+    {id:'humour',q:'Ton humour ?',opts:['🃏 Ironie constante','😂 Bon vivant','🧊 Pince-sans-rire']},
+    {id:'famille',q:'La famille à Noël ?',opts:['❤️ Tradition sacrée','😅 Obligation survie','✈️ Je m\'enfuis']},
+    {id:'ambition',q:'Dans 5 ans ?',opts:['🚀 Empire en construction','🏡 Vie tranquille','🤷 Aucune idée']},
+    {id:'talent',q:'Ton talent caché que personne n\'apprécie ?',opts:['🎤 Artiste incompris','🧠 Génie discret','🤷 J\'en ai pas']},
+    {id:'paraitre',q:'La chose la plus chère achetée pour "faire bien" ?',opts:['👟 Sneakers/fringues','📱 Tech/gadget','🍽️ Resto/sortie']},
+    {id:'beauf',q:'L\'habitude "beauf" que tu caches en date ?',opts:['📺 Télé-réalité','🍕 Malbouffe nocturne','🎮 Gaming marathon']},
+    {id:'supprime',q:'Le dernier truc supprimé de tes réseaux ?',opts:['📸 Photo gênante','💬 Story regrettée','🙈 Rien, j\'assume tout']},
+    {id:'snob',q:'Le truc populaire que tu détestes par principe ?',opts:['📱 TikTok','☕ Starbucks','🎵 Un artiste mainstream']},
+];
+
+const QUIZ_EN={
+    samedi:{q:'A perfect Saturday night?',opts:['🏠 Netflix & chill','🍸 Night out with friends','🌙 Spontaneous adventure']},
+    conflit:{q:'Facing a disagreement?',opts:['🤝 Direct discussion','⏳ Let it pass','🔥 Head-on confrontation']},
+    temps:{q:'Your relationship with time?',opts:['⏰ Always early','😅 Chronically late','🎯 Right on time']},
+    cuisine:{q:'In the kitchen?',opts:['👨‍🍳 Passionate chef','📱 Uber Eats regular','🍝 Survival cooking']},
+    reseaux:{q:'Your social media?',opts:['📸 Curated feed','🌪️ Total chaos','👻 Ghost mode']},
+    argent:{q:'Your relationship with money?',opts:['💰 Strategic saver','🛍️ Proud spender','🤷 Don\'t think about it']},
+    ego:{q:'Your ego at a party?',opts:['👑 Love to shine','🫥 Low profile','🎭 Depends on the crowd']},
+    travail:{q:'Work in your life?',opts:['🔥 Hustle mode','⚖️ Sacred balance','😴 Bare minimum']},
+    nuit:{q:'Your relationship with night?',opts:['🦉 Night creature','🌅 Asleep by 10pm','🎲 Depends on the mood']},
+    sport:{q:'You and sports?',opts:['💪 Sacred routine','🏃 Occasionally','🛋️ My sport is the couch']},
+    amour:{q:'Love in one word?',opts:['💕 Hopeless romantic','🧊 Pragmatic','🎢 Complicated']},
+    digital:{q:'Your screen time?',opts:['📱 Shameful','⏱️ Reasonable','🚫 Digital detox']},
+    voyage:{q:'Your travel style?',opts:['📋 All planned out','🎒 Backpack freestyle','🏖️ All-inclusive']},
+    musique:{q:'Your music at parties?',opts:['🎧 Self-proclaimed DJ','🤷 I just go with it','🎵 Eclectic']},
+    mode:{q:'Your relationship with fashion?',opts:['👔 Always sharp','👕 Comfort first','🖤 My own style']},
+    alcool:{q:'You and alcohol?',opts:['🍷 Epicurean','🍺 Social drinker','🚰 Sober']},
+    animal:{q:'If you were an animal?',opts:['🐺 Lone wolf','🐕 Loyal dog','🦊 Clever fox']},
+    matin:{q:'In the morning, you are?',opts:['☀️ Sunrise person','☕ Not before coffee','😤 Dangerous']},
+    secret:{q:'Do you keep secrets well?',opts:['🤐 Vault','😬 Depends','📢 Total sieve']},
+    critique:{q:'Facing criticism?',opts:['🛡️ Bulletproof','💔 Sensitive','🔄 I learn from it']},
+    rangement:{q:'Your living space?',opts:['✨ Marie Kondo','🌀 Organized chaos','🗑️ Disaster zone']},
+    engagement:{q:'Your civic engagement?',opts:['✊ Active activist','🗳️ I vote and that\'s it','😶 Disillusioned']},
+    humour:{q:'Your humor?',opts:['🃏 Constant irony','😂 Life of the party','🧊 Deadpan']},
+    famille:{q:'Family at Christmas?',opts:['❤️ Sacred tradition','😅 Survival obligation','✈️ I escape']},
+    ambition:{q:'In 5 years?',opts:['🚀 Empire building','🏡 Quiet life','🤷 No idea']},
+    talent:{q:'Your hidden talent nobody appreciates?',opts:['🎤 Misunderstood artist','🧠 Quiet genius','🤷 Don\'t have one']},
+    paraitre:{q:'Most expensive thing bought to "look good"?',opts:['👟 Sneakers/clothes','📱 Tech/gadget','🍽️ Restaurant/outing']},
+    beauf:{q:'The "basic" habit you hide on dates?',opts:['📺 Reality TV','🍕 Late-night junk food','🎮 Gaming marathon']},
+    supprime:{q:'Last thing deleted from social media?',opts:['📸 Embarrassing photo','💬 Regretted story','🙈 Nothing, I own it all']},
+    snob:{q:'Popular thing you hate on principle?',opts:['📱 TikTok','☕ Starbucks','🎵 A mainstream artist']},
+};
+
+function pickRandomQuiz(){
+    const shuffled=[...QUIZ_BANK];
+    for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+    return shuffled.slice(0,7);
+}
+
+function renderQuiz(containerId,playerKey){
+    const c=$(containerId);c.innerHTML='';
+    // Pick 7 random questions for this player
+    if(!ST[playerKey]._quizPick) ST[playerKey]._quizPick=pickRandomQuiz();
+    const questions=ST[playerKey]._quizPick;
+    const isEN=ST.lang==='en';
+    questions.forEach(q=>{
+        const wrap=document.createElement('div');
+        const qData=ST.lang==='en'&&QUIZ_EN[q.id]?QUIZ_EN[q.id]:q;
+        wrap.innerHTML='<div class="quiz-q">'+qData.q+'</div>';
+        const row=document.createElement('div');row.className='quiz-opts';
+        const opts=ST.lang==='en'&&QUIZ_EN[q.id]?QUIZ_EN[q.id].opts:q.opts;
+        opts.forEach((o,i)=>{
+            const btn=document.createElement('div');btn.className='quiz-opt';btn.textContent=o;
+            btn.dataset.qid=q.id;btn.dataset.val=o;
+            // Restore selection if already answered
+            if(ST[playerKey].quiz[q.id]===o) btn.classList.add('sel');
+            btn.addEventListener('click',function(){
+                row.querySelectorAll('.quiz-opt').forEach(b=>b.classList.remove('sel'));
+                btn.classList.add('sel');
+                ST[playerKey].quiz[q.id]=o;
+            });
+            row.appendChild(btn);
+        });
+        wrap.appendChild(row);c.appendChild(wrap);
+    });
+}
+
+// ================================================================
+//  TAG SELECTOR — Façade à déconstruire (max 20 par joueur)
+// ================================================================
+const TAG_BANK={
+    "tcat_moi":[
+        "Minimaliste","Ambitieux","Anxieux","Créatif","Casanier",
+        "Épicurien","Spirituel","Ironique","Nostalgique","Technophile",
+        "Idéaliste","Pragmatique","Impulsif","Réfléchi","Solitaire",
+        "Extraverti","Rebelle","Perfectionniste","Authentique","Mystérieux"
+    ],
+    "tcat_loisirs":[
+        "Cinéma d'auteur","Blockbusters","Gaming","Tricot","Animés",
+        "Escalade","Vinyles","Séries B","Lecture","Musées",
+        "Jardinage","Cuisine","Yoga","Raves","Théâtre",
+        "Photographie","Musique live","Podcasts","Échecs","Sport extrême"
+    ],
+    "tcat_lieux":[
+        "Rooftops","Bars de quartier","Forêts","Restaurants bio","Plage",
+        "Montagne","Festivals","Parcs","Bureaux","Transports",
+        "Aéroports","Bibliothèques","Terrasses","Clubs","Campagne",
+        "Ville dense","Coworking","Gym","Haussmannien","Friches"
+    ],
+    "tcat_digital":[
+        "Instagram","Twitter/X","TikTok","LinkedIn","Mode Fantôme",
+        "Messages vocaux","News en boucle","Digital Detox","IA Optimiste","Gamer",
+        "Scroll infini","Notifications 24/7","Podcast addict","Threads","BeReal",
+        "Pinterest","Tinder","Bumble","Discord","YouTube"
+    ],
+    "tcat_vibe":[
+        "Fêtard","Engagé","Neutre","Provocateur","Médiateur",
+        "Ironie constante","Premier degré","Écoute active","Militant","Écolo",
+        "Féministe","Élitiste","Populaire","Solaire","Discret",
+        "Cynique","Empathique","Direct","Nuancé","Paradoxal"
+    ]
+};
+
+function renderTagSelector(containerId,countId,playerKey){
+    const c=$(containerId);c.innerHTML='';
+    const MAX_TAGS=20;
+    function updCount(){
+        const el=$(countId);
+        el.textContent=ST[playerKey].tags.length+'/'+MAX_TAGS;
+        el.style.color=ST[playerKey].tags.length>=MAX_TAGS?'var(--green)':'';
+    }
+    Object.entries(TAG_BANK).forEach(([catName,tags])=>{
+        const lbl=document.createElement('div');lbl.className='tag-cat-label';lbl.textContent=T[catName]?t(catName):catName;
+        c.appendChild(lbl);
+        const grid=document.createElement('div');grid.className='tag-grid';
+        tags.forEach(tag=>{
+            const pill=document.createElement('div');pill.className='tag-pill';
+            if(ST[playerKey].tags.includes(tag)) pill.classList.add('sel');
+            pill.textContent=tag;
+            pill.addEventListener('click',()=>{
+                const idx=ST[playerKey].tags.indexOf(tag);
+                if(idx>-1){ST[playerKey].tags.splice(idx,1);pill.classList.remove('sel');}
+                else if(ST[playerKey].tags.length<MAX_TAGS){ST[playerKey].tags.push(tag);pill.classList.add('sel');}
+                updCount();
+            });
+            grid.appendChild(pill);
+        });
+        c.appendChild(grid);
+    });
+    updCount();
+}
+
+// ================================================================
+//  CATEGORIZED UPLOAD — 5 dossiers × 3 photos
+// ================================================================
+const UPLOAD_CATS=[
+    {id:'moi',    tl:'cat_moi',    ts:'cat_moi_sub'},
+    {id:'lieux',  tl:'cat_lieux',  ts:'cat_lieux_sub'},
+    {id:'loisirs',tl:'cat_loisirs',ts:'cat_loisirs_sub'},
+    {id:'ecrans', tl:'cat_ecrans', ts:'cat_ecrans_sub'},
+    {id:'chats',  tl:'cat_chats',  ts:'cat_chats_sub'}
+];
+
+function initGallery(_, playerKey){
+    renderUploadSections(playerKey);
+}
+
+function renderUploadSections(playerKey){
+    const container=$(playerKey==='p1'?'uploadGrid1':'uploadGrid2');
+    container.innerHTML='';
+    UPLOAD_CATS.forEach(cat=>{
+        const imgs=ST[playerKey].imgs[cat.id];
+        const wrap=document.createElement('div');
+        wrap.className='gcard';wrap.style.padding='10px';
+        wrap.innerHTML=`
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div>
+                    <div style="font-size:11px;font-weight:700;">${t(cat.tl)}</div>
+                    <div style="font-size:9px;color:var(--muted);">${t(cat.ts)}</div>
+                </div>
+                <div style="font-size:10px;color:var(--rose);font-weight:700;">${imgs.length}/3</div>
+            </div>
+            <div class="img-gallery" style="grid-template-columns:repeat(4,1fr);gap:6px;"></div>`;
+        const gal=wrap.querySelector('.img-gallery');
+        // Render existing thumbnails
+        imgs.forEach((src,i)=>{
+            const th=document.createElement('div');th.className='img-thumb';
+            th.innerHTML='<img src="'+src+'"><div class="rm">✕</div>';
+            th.querySelector('.rm').addEventListener('click',function(e){
+                e.stopPropagation();
+                ST[playerKey].imgs[cat.id].splice(i,1);
+                renderUploadSections(playerKey);
+            });
+            gal.appendChild(th);
+        });
+        // Add button if < 3
+        if(imgs.length<3){
+            const add=document.createElement('div');add.className='img-add';
+            add.innerHTML='<span>+</span><input type="file" accept="image/*" multiple>';
+            add.querySelector('input').addEventListener('change',function(e){
+                handleCategoryUpload(playerKey,cat.id,e.target);
+            });
+            gal.appendChild(add);
+        }
+        container.appendChild(wrap);
+    });
+}
+
+function handleCategoryUpload(playerKey,catId,input){
+    const files=Array.from(input.files);
+    const remaining=3-ST[playerKey].imgs[catId].length;
+    const toProcess=files.slice(0,remaining);
+    let processed=0;
+    toProcess.forEach(f=>{
+        compressImage(f,800,.7,function(b64){
+            ST[playerKey].imgs[catId].push(b64);
+            processed++;
+            if(processed===toProcess.length) renderUploadSections(playerKey);
+        });
+    });
+}
+
+function compressImage(file,maxSize,quality,cb){
+    const reader=new FileReader();
+    reader.onload=function(e){
+        const img=new Image();
+        img.onload=function(){
+            const canvas=document.createElement('canvas');
+            let w=img.width,h=img.height;
+            if(w>maxSize||h>maxSize){
+                if(w>h){h=Math.round(h*maxSize/w);w=maxSize;}
+                else{w=Math.round(w*maxSize/h);h=maxSize;}
+            }
+            canvas.width=w;canvas.height=h;
+            canvas.getContext('2d').drawImage(img,0,0,w,h);
+            cb(canvas.toDataURL('image/jpeg',quality));
+        };
+        img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// ================================================================
+//  ANONYMIZATION
+// ================================================================
+function anon(s){if(!s)return s;return s.replace(/(\+?\d[\d\s\-\.]{7,}\d)/g,'[TEL]').replace(/[\w.-]+@[\w.-]+\.\w+/g,'[EMAIL]').replace(/https?:\/\/[^\s]+/g,'[URL]').replace(/@[\w.]+/g,'[HANDLE]');}
+
+// ================================================================
+//  AI ANALYSIS — Two-Stage Pipeline: Pro (Vision) + Flash (Writing)
+// ================================================================
+async function analyze(){
+    const n1=ST.p1.name||'Joueur 1',n2=ST.p2.name||'Joueur 2';
+    const tags1=ST.p1.tags.join(', '),tags2=ST.p2.tags.join(', ');
+    const age1=ST.p1.age,age2=ST.p2.age;
+    const q1=Object.entries(ST.p1.quiz).map(([k,v])=>k+': '+v).join('\n');
+    const q2=Object.entries(ST.p2.quiz).map(([k,v])=>k+': '+v).join('\n');
+
+    const PROXY='/api/gemini';
+
+    // ════════════════════════════════════════════════════════
+    //  STAGE 1 — Pro (Vision): Extract vulnerabilities JSON
+    // ════════════════════════════════════════════════════════
+    const proPrompt=`Tu es le module de vision de "Black Mirror". Scanne les 5 dossiers de photos et croise-les avec les Tags et le Quiz pour extraire 27 vulnérabilités (10 pour ${n1}, 10 pour ${n2}, 7 Entropie croisée).
+
+═══ ANALYSE PAR DOSSIER ═══
+• MOI : Quelle image le joueur cherche à imposer ? (cadrage, lumière, mise en scène, ego)
+• LIEUX : Quels décors trahissent son mode de vie réel ? (conformisme, gentrification, spots)
+• LOISIRS : Pratique réelle ou scénographie ? (matériel neuf vs usé, engagement réel)
+• ÉCRANS : À quoi sacrifie-t-il son temps en secret ? (surcharge cognitive, apps contradictoires)
+• CHATS : Quel est son vrai ton quand personne ne regarde ? (contrôle, fatigue, hypocrisie)
+
+═══ LOGIQUE ═══
+• DISSONANCE (70%) : Le Tag ou Quiz contredit les photos → vulnérabilité exploitable.
+• ALLIANCE (30%) : Tag et photos cohérents → victoire rare, à célébrer avec ironie.
+• L'ÂGE amplifie la dissonance si fourni.
+
+═══ ZONES INTERDITES ═══
+JAMAIS : apparence physique/poids, race/ethnie, religion, orientation sexuelle, handicap, santé mentale, moyens financiers.
+
+═══ FORMAT JSON — SORTIE TECHNIQUE UNIQUEMENT ═══
+JSON pur, sans backticks. Ne rédige AUCUNE phrase finale. Sois uniquement factuel et technique.
+{"vulns":[{"source":1,"theme":"THÈME (ex: Argent, Ego, Sport)","type":"dissonance|alliance","proof":"PREUVE TECHNIQUE (ex: Tag Écolo vs Dossier ÉCRANS montrant App Amazon)","salt":"FAIT SOCIOLOGIQUE OU CLICHÉ 2026 LIÉ À CETTE PREUVE (trouvé via web)"}]}
+
+27 vulnérabilités (10 source:1 pour ${n1}${age1?' ('+age1+' ans)':''}, 10 source:2 pour ${n2}${age2?' ('+age2+' ans)':''}, 7 source:0 Entropie croisée). Utilise Google Search pour les "salt".`;
+
+    // Build Pro parts with images
+    const parts=[];
+    parts.push({text:proPrompt});
+
+    // Player 1
+    parts.push({text:`\n\n═══ ${n1}${age1?' ('+age1+')':''} ═══\nTAGS : ${tags1||'(aucun)'}\nQUIZ : ${q1||'(non rempli)'}\nDOSSIERS :`});
+    let p1HasImgs=false;
+    UPLOAD_CATS.forEach(cat=>{
+        const arr=ST.p1.imgs[cat.id];
+        if(arr.length>0){
+            p1HasImgs=true;
+            parts.push({text:`\n📁 ${t(cat.tl).toUpperCase()} (${arr.length}) :`});
+            arr.forEach(img=>{
+                const b64=img.split(',')[1];const m=img.match(/data:(image\/\w+);/);
+                parts.push({inlineData:{mimeType:m?m[1]:'image/jpeg',data:b64}});
+            });
+        }
+    });
+    if(!p1HasImgs) parts.push({text:'(aucune image — déduis des indices du texte)'});
+
+    // Player 2
+    parts.push({text:`\n\n═══ ${n2}${age2?' ('+age2+')':''} ═══\nTAGS : ${tags2||'(aucun)'}\nQUIZ : ${q2||'(non rempli)'}\nDOSSIERS :`});
+    let p2HasImgs=false;
+    UPLOAD_CATS.forEach(cat=>{
+        const arr=ST.p2.imgs[cat.id];
+        if(arr.length>0){
+            p2HasImgs=true;
+            parts.push({text:`\n📁 ${t(cat.tl).toUpperCase()} (${arr.length}) :`});
+            arr.forEach(img=>{
+                const b64=img.split(',')[1];const m=img.match(/data:(image\/\w+);/);
+                parts.push({inlineData:{mimeType:m?m[1]:'image/jpeg',data:b64}});
+            });
+        }
+    });
+    if(!p2HasImgs) parts.push({text:'(aucune image — déduis des indices du texte)'});
+
+    try{
+        // ── STAGE 1: Call Pro (Vision) ──
+        $('loadMsg').textContent=ST.lang==='en'?'Stage 1/2 — Scanning evidence...':'Étape 1/2 — Scan des preuves...';
+        const r1=await fetch(PROXY,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                model:"gemini-1.5-pro",
+                contents:[{parts}],
+                tools:[{google_search_retrieval:{dynamic_retrieval_config:{mode:"MODE_DYNAMIC",dynamic_threshold:0.3}}}],
+                generationConfig:{temperature:0.8,maxOutputTokens:5000,responseMimeType:"application/json"}
+            })
+        });
+        const d1=await r1.json();
+        if(d1.error)throw new Error('Pro: '+(d1.error.message||JSON.stringify(d1.error)));
+
+        const raw1=d1.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+        const vulnsJSON=JSON.parse(raw1.replace(/```json|```/g,'').trim());
+        if(!vulnsJSON.vulns||vulnsJSON.vulns.length===0) throw new Error('Pro: no vulns extracted');
+
+        console.log('Stage 1 OK:',vulnsJSON.vulns.length,'vulns');
+
+        // ── STAGE 2: Call Flash (Writing) ──
+        $('loadMsg').textContent=ST.lang==='en'?'Stage 2/2 — Forging hot takes...':'Étape 2/2 — La Forge écrit...';
+
+        const isEN=ST.lang==='en';
+        const flashPrompt=`Tu es l'avatar cynique des joueurs de "Black Mirror". Ton ton est celui des réseaux sociaux (Twitter/X, Instagram). Tu ne fais pas de la sociologie, tu balances des Hot Takes virales. Tes phrases doivent être courtes, percutantes, et sonner comme un post qui pourrait faire le buzz.
+
+Transforme ce JSON de vulnérabilités en 27 hot takes.
+
+═══ STYLE RÉSEAUX ═══
+• SIMPLICITÉ RADICALE : Pas de mots de plus de 3 syllabes si possible. Langage de tous les jours. Zéro jargon (pas de "aliénation", "sémiologie", "systémique", "paradigme").
+• L'EFFET "TWEET" : Tournures directes, percutantes. Le genre de phrase qu'on screenshot et qu'on partage. (Ex: "C'est grave", "L'enfer", "Vrai sujet", "Zéro effort", "C'est chaud", "Gros red flag").
+• VOIX DE L'EGO : Toujours au "Je". C'est une pensée balancée sur un coup de tête, pas une thèse.${isEN?' In English: casual, punchy, tweet-worthy. Like something you\'d post at 2am.':''}
+• OPENERS VARIÉS : ${isEN?'Mix it up: "I think", "Honestly", "Hot take:", "Ngl", "Real talk:", "Lowkey", "No way", "I swear", "Unpopular opinion:". NEVER repeat the same opener twice in a row.':'Varie : "Je pense que", "Franchement", "Hot take :", "En vrai", "Perso", "C\'est abusé", "Selon moi", "Grave", "Non mais". JAMAIS le même opener deux fois de suite.'}
+• FORMAT : 15 mots max. Sec. Pas de virgules inutiles. Ça doit claquer.
+• INVISIBLE : Ne cite JAMAIS les tags du joueur. Ça parle du monde, mais c'est calibré pour le toucher.
+• SAFE : On tape sur les comportements et les tendances — jamais sur les personnes. Jamais apparence, race, religion, orientation, handicap, santé mentale.
+• DISSONANCE → hot take qui expose le comportement contradictoire.
+• ALLIANCE → hot take qui défend la valeur avec conviction.
+${isEN?'Write ALL sentences in English.':'Écris en français.'}
+
+═══ FORMAT JSON ═══
+JSON pur, sans backticks.
+{"statements":[{"theme":"THEME","text":"HOT_TAKE_15_MOTS_MAX","source":1,"collision":[{"balise":"PREUVE","detail":"CONTEXTE"}]}]}
+
+Voici les vulnérabilités à transformer :
+${JSON.stringify(vulnsJSON.vulns)}`;
+
+        const r2=await fetch(PROXY,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                model:"gemini-1.5-flash",
+                contents:[{parts:[{text:flashPrompt}]}],
+                generationConfig:{temperature:0.9,maxOutputTokens:4000,responseMimeType:"application/json"}
+            })
+        });
+        const d2=await r2.json();
+        if(d2.error)throw new Error('Flash: '+(d2.error.message||JSON.stringify(d2.error)));
+
+        const raw2=d2.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+        const parsed=JSON.parse(raw2.replace(/```json|```/g,'').trim());
+
+        if(parsed.statements?.length>0){
+            ST.stmts=parsed.statements;
+            if(vulnsJSON.scan) ST._scan=vulnsJSON.scan;
+            clearImgs();
+            console.log('Stage 2 OK:',ST.stmts.length,'statements');
+            return true;
+        }
+        throw new Error('Flash: no statements');
+    }catch(e){
+        console.error('Pipeline error:',e);
+        $('loadError').textContent=(ST.lang==='en'?'AI Error: ':'Erreur IA: ')+e.message;
+        $('loadError').style.display='block';
+        ST.stmts=fallback();clearImgs();return true;
+    }
+}
+
+function clearImgs(){const empty={moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]};ST.p1.imgs={...empty};ST.p2.imgs={moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]};}
+
+function fallback(){
+    const a=[
+        // SOURCE 1 (10) — Hot Takes FR (calibrées sur J1)
+        {theme:"🗳️ ENGAGEMENT",text:"En vrai, commander sur Shein et se dire engagé c'est le plus gros red flag.",source:1,prisme:"A",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag 'Engagé' vs app fast-fashion détectée"}]},
+        {theme:"🎵 MUSIQUE",text:"Franchement laisser Spotify décider de tes goûts c'est avoir zéro personnalité.",source:1,prisme:"B",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag musical vs playlist 100% générée"}]},
+        {theme:"🐾 ANIMAUX",text:"Perso je trouve ça grave de mieux cadrer son chat que de répondre à ses potes.",source:1,prisme:"D",collision:[{balise:"MOI × CHATS",detail:"Photos animaux soignées vs notifications humaines ignorées"}]},
+        {theme:"📱 TECHNOLOGIE",text:"Hot take : les gens qui parlent de digital detox sont les plus accros de tous.",source:1,prisme:"B",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag 'Digital Detox' vs saturation cognitive visible"}]},
+        {theme:"🏋️ SPORT",text:"Non mais le sport c'est devenu un trait de personnalité, plus un mode de vie.",source:1,prisme:"A",collision:[{balise:"MOI × LOISIRS",detail:"Sport classé dans MOI = identité, pas hobby"}]},
+        {theme:"🤝 AMITIÉ",text:"C'est abusé comment les photos de groupe sont devenues des shootings, pas des souvenirs.",source:1,prisme:"C",collision:[{balise:"MOI × ÉCRANS",detail:"Cadrage collectif soigné vs posture discrète déclarée"}]},
+        {theme:"💰 ARGENT",text:"Je pense que payer 6 balles un café et se dire minimaliste c'est du délire.",source:1,prisme:"A",collision:[{balise:"FAÇADE × LIEUX",detail:"Tag 'Minimaliste' vs décor premium systématique"}]},
+        {theme:"🌑 NUIT",text:"Grave, scroller à 3h du mat' et dire qu'on dort tôt c'est juste se mentir.",source:1,prisme:"D",collision:[{balise:"ÉCRANS × FAÇADE",detail:"Quiz 'couché tôt' vs activité nocturne flagrante"}]},
+        {theme:"🎨 PASSIONS",text:"Franchement acheter tout le matos d'un hobby sans jamais l'ouvrir c'est du cosplay.",source:1,prisme:"B",collision:[{balise:"LOISIRS × FAÇADE",detail:"Tag 'Créatif' vs matériel intact, zéro usure"}]},
+        {theme:"👨‍👩‍👧 FAMILLE",text:"Perso zéro proche dans tes photos mais tu te dis casanier ? C'est chaud.",source:1,prisme:"A",collision:[{balise:"MOI × FAÇADE",detail:"Tag 'Casanier' vs absence totale de proches dans MOI"}]},
+        // SOURCE 2 (10) — Hot Takes FR (calibrées sur J2)
+        {theme:"🎬 CINÉMA",text:"En vrai citer Kubrick sans avoir vu un seul de ses films c'est juste du bluff.",source:2,prisme:"C",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag 'Cinéma d'auteur' vs historique mainstream"}]},
+        {theme:"🍽️ GASTRONOMIE",text:"Hot take : commander Uber Eats tous les soirs et se dire cuisinier, l'enfer.",source:2,prisme:"C",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag 'Cuisine' vs app livraison active"}]},
+        {theme:"💼 TRAVAIL",text:"Selon moi parler d'équilibre vie pro à 1h du mat' c'est du déni total.",source:2,prisme:"A",collision:[{balise:"CHATS × ÉCRANS",detail:"Tag 'Pragmatique' vs syntaxe pro à heure impossible"}]},
+        {theme:"❤️ SENTIMENTAL",text:"Non mais swiper pour trouver l'amour c'est faire ses courses au rayon sentiments.",source:2,prisme:"D",collision:[{balise:"FAÇADE × ÉCRANS",detail:"Tag 'Authentique' vs app dating en notification"}]},
+        {theme:"🧭 AVENTURE",text:"Grave, aller aux mêmes spots que tout Instagram c'est pas de l'aventure.",source:2,prisme:"B",collision:[{balise:"LIEUX × FAÇADE",detail:"Tag 'Rebelle' vs spots Instagram identiques"}]},
+        {theme:"👕 MODE",text:"Franchement porter la même tenue sur toutes tes photos c'est pas un style, c'est la flemme.",source:2,prisme:"D",collision:[{balise:"MOI × FAÇADE",detail:"Tag 'Créatif' vs uniforme répété"}]},
+        {theme:"🏠 ESPACE",text:"Perso un appart trop rangé ça cache quelqu'un qui contrôle tout sauf sa vie.",source:2,prisme:"C",collision:[{balise:"LIEUX × FAÇADE",detail:"Tag 'Authentique' vs intérieur trop stagé"}]},
+        {theme:"🧠 ÉMOTIONS",text:"C'est abusé de poster sa vulnérabilité en story template. Même les émotions ont un format.",source:2,prisme:"A",collision:[{balise:"ÉCRANS × FAÇADE",detail:"Tag 'Réfléchi' vs stories émotionnelles quotidiennes"}]},
+        {theme:"🎭 CULTURE",text:"En vrai se dire cultivé sans lire un livre par an c'est normal maintenant et c'est triste.",source:2,prisme:"C",collision:[{balise:"FAÇADE × LOISIRS",detail:"Tag 'Lecture' vs références 100% mainstream"}]},
+        {theme:"🃏 HUMOUR",text:"Hot take : l'ironie permanente c'est juste la plus grosse preuve d'insécurité.",source:2,prisme:"D",collision:[{balise:"CHATS × FAÇADE",detail:"Tag 'Solaire' vs ton défensif systématique"}]},
+        // ENTROPIE (7) — Hot Takes FR
+        {theme:"🌐 SOCIÉTÉ",text:"Franchement on se croit tous uniques mais on a la même playlist de PNJ.",source:0,prisme:"E",collision:[{balise:"ÉCRANS J1 × ÉCRANS J2",detail:"Mêmes apps streaming détectées chez les deux"}]},
+        {theme:"📡 MÉDIAS",text:"Perso avoir les mêmes apps, mêmes filtres, mêmes cafés c'est pas de la diversité.",source:0,prisme:"E",collision:[{balise:"ÉCRANS J1 × LIEUX J2",detail:"Écosystème numérique identique + lieux similaires"}]},
+        {theme:"🎪 SPECTACLE",text:"Non mais mettre un filtre vintage sur tout et appeler ça de la nostalgie, c'est chaud.",source:0,prisme:"E",collision:[{balise:"MOI J1 × MOI J2",detail:"Même posture vintage sur deux profils séparés"}]},
+        {theme:"⚡ PROGRÈS",text:"Grave, optimiser chaque minute de sa journée c'est juste optimiser le vide.",source:0,prisme:"E",collision:[{balise:"ÉCRANS J1 × CHATS J2",detail:"J1 surcharge cognitive + J2 syntaxe optimisation"}]},
+        {theme:"🪞 IDENTITÉ",text:"En vrai retoucher sa bio en boucle c'est le brouillon d'une vie jamais vécue.",source:0,prisme:"E",collision:[{balise:"CHATS J1 × MOI J2",detail:"J1 bio retravaillée + J2 postures contradictoires"}]},
+        {theme:"🏛️ SYSTÈME",text:"Je pense qu'un quartier avec un café à 6€ et un mur en briques c'est pas authentique.",source:0,prisme:"E",collision:[{balise:"LIEUX J1 × LIEUX J2",detail:"Lieux identiques détectés chez les deux"}]},
+        {theme:"🔮 FUTUR",text:"Selon moi acheter le passé en édition limitée c'est pas être cultivé, c'est être un pigeon.",source:0,prisme:"E",collision:[{balise:"MOI J1 × LOISIRS J2",detail:"J1 posture rétro + J2 nostalgie consommée"}]},
+    ];
+    // English fallback — Social media tone
+    const b=[
+        {theme:"🗳️ ENGAGEMENT",text:"Honestly ordering fast fashion while calling yourself ethical is the biggest red flag.",source:1,prisme:"A",collision:[{balise:"FAÇADE × SCREENS",detail:"Tag 'Engaged' vs fast-fashion app detected"}]},
+        {theme:"🎵 MUSIC",text:"Hot take: letting an algorithm pick your music means you have zero taste.",source:1,prisme:"B",collision:[{balise:"FAÇADE × SCREENS",detail:"Music tag vs 100% generated playlist"}]},
+        {theme:"🐾 ANIMALS",text:"Ngl people who frame their cat better than they text their friends are unhinged.",source:1,prisme:"D",collision:[{balise:"ME × CHATS",detail:"Careful pet photos vs ignored human notifications"}]},
+        {theme:"📱 TECHNOLOGY",text:"Real talk: people who talk about digital detox are always the most addicted.",source:1,prisme:"B",collision:[{balise:"FAÇADE × SCREENS",detail:"Tag 'Digital Detox' vs visible cognitive overload"}]},
+        {theme:"🏋️ SPORT",text:"I swear fitness has become a personality trait, not an actual lifestyle.",source:1,prisme:"A",collision:[{balise:"ME × HOBBIES",detail:"Sport classified as identity, not hobby"}]},
+        {theme:"🤝 FRIENDSHIP",text:"Lowkey group photos are just staged productions now, not real memories.",source:1,prisme:"C",collision:[{balise:"ME × SCREENS",detail:"Carefully composed group shots vs declared low-profile"}]},
+        {theme:"💰 MONEY",text:"No way you're paying $7 for coffee and calling yourself a minimalist. Pick one.",source:1,prisme:"A",collision:[{balise:"FAÇADE × PLACES",detail:"Tag 'Minimalist' vs consistently premium settings"}]},
+        {theme:"🌑 NIGHT",text:"Honestly scrolling at 3am then saying you sleep early is just lying to yourself.",source:1,prisme:"D",collision:[{balise:"SCREENS × FAÇADE",detail:"Quiz 'early sleeper' vs late-night activity"}]},
+        {theme:"🎨 PASSIONS",text:"Unpopular opinion: buying hobby gear and never using it is just cosplay.",source:1,prisme:"B",collision:[{balise:"HOBBIES × FAÇADE",detail:"Tag 'Creative' vs pristine unused equipment"}]},
+        {theme:"👨‍👩‍👧 FAMILY",text:"I think zero family in your pics but calling yourself a homebody is sus.",source:1,prisme:"A",collision:[{balise:"ME × FAÇADE",detail:"Tag 'Homebody' vs total absence of loved ones"}]},
+        {theme:"🎬 CINEMA",text:"Real talk: name-dropping directors without watching their films is pure bluff.",source:2,prisme:"C",collision:[{balise:"FAÇADE × SCREENS",detail:"Tag 'Art cinema' vs mainstream history"}]},
+        {theme:"🍽️ FOOD",text:"Hot take: ordering Uber Eats every night and calling yourself a cook is insane.",source:2,prisme:"C",collision:[{balise:"FAÇADE × SCREENS",detail:"Tag 'Cooking' vs active delivery app"}]},
+        {theme:"💼 WORK",text:"Ngl talking about work-life balance at 1am is just denial at this point.",source:2,prisme:"A",collision:[{balise:"CHATS × SCREENS",detail:"Tag 'Pragmatic' vs impossible-hour work syntax"}]},
+        {theme:"❤️ LOVE",text:"I swear swiping for love is just grocery shopping but for feelings.",source:2,prisme:"D",collision:[{balise:"FAÇADE × SCREENS",detail:"Tag 'Authentic' vs dating app notifications"}]},
+        {theme:"🧭 ADVENTURE",text:"Lowkey visiting the same spots as everyone on Instagram is not an adventure.",source:2,prisme:"B",collision:[{balise:"PLACES × FAÇADE",detail:"Tag 'Rebel' vs identical Instagram spots"}]},
+        {theme:"👕 FASHION",text:"Honestly wearing the same outfit in every pic isn't a style, it's laziness.",source:2,prisme:"D",collision:[{balise:"ME × FAÇADE",detail:"Tag 'Creative' vs repeated uniform"}]},
+        {theme:"🏠 SPACE",text:"Unpopular opinion: an apartment that's too clean hides someone who controls everything except life.",source:2,prisme:"C",collision:[{balise:"PLACES × FAÇADE",detail:"Tag 'Authentic' vs overly staged interior"}]},
+        {theme:"🧠 EMOTIONS",text:"No way posting vulnerability in a story template is real emotion. That's content.",source:2,prisme:"A",collision:[{balise:"SCREENS × FAÇADE",detail:"Tag 'Thoughtful' vs daily emotional stories"}]},
+        {theme:"🎭 CULTURE",text:"I think calling yourself cultured without reading one book a year is wild.",source:2,prisme:"C",collision:[{balise:"FAÇADE × HOBBIES",detail:"Tag 'Reading' vs 100% mainstream references"}]},
+        {theme:"🃏 HUMOR",text:"Hot take: constant sarcasm is just insecurity wearing a funny hat.",source:2,prisme:"D",collision:[{balise:"CHATS × FAÇADE",detail:"Tag 'Sunny' vs systematically defensive tone"}]},
+        {theme:"🌐 SOCIETY",text:"Real talk: we all think our playlists are unique but we're all NPCs.",source:0,prisme:"E",collision:[{balise:"SCREENS P1 × SCREENS P2",detail:"Same streaming apps detected on both"}]},
+        {theme:"📡 MEDIA",text:"Ngl same apps, same filters, same cafes — where's the diversity exactly?",source:0,prisme:"E",collision:[{balise:"SCREENS P1 × PLACES P2",detail:"Identical digital ecosystem + similar locations"}]},
+        {theme:"🎪 SPECTACLE",text:"Honestly slapping a vintage filter on everything and calling it nostalgia is embarrassing.",source:0,prisme:"E",collision:[{balise:"ME P1 × ME P2",detail:"Same vintage posture on two separate profiles"}]},
+        {theme:"⚡ PROGRESS",text:"I swear optimizing every single minute of your day is just optimizing emptiness.",source:0,prisme:"E",collision:[{balise:"SCREENS P1 × CHATS P2",detail:"P1 cognitive overload + P2 optimization syntax"}]},
+        {theme:"🪞 IDENTITY",text:"Lowkey editing your bio 47 times is the draft of a life never lived.",source:0,prisme:"E",collision:[{balise:"CHATS P1 × ME P2",detail:"P1 reworked bio + P2 contradictory postures"}]},
+        {theme:"🏛️ SYSTEM",text:"Unpopular opinion: a neighborhood with $7 coffee and exposed brick isn't authentic.",source:0,prisme:"E",collision:[{balise:"PLACES P1 × PLACES P2",detail:"Identical locations detected on both"}]},
+        {theme:"🔮 FUTURE",text:"Hot take: buying the past in limited edition doesn't make you cultured, just a sucker.",source:0,prisme:"E",collision:[{balise:"ME P1 × HOBBIES P2",detail:"P1 retro posture + P2 consumed nostalgia"}]},
+    ];
+    const stmts=ST.lang==='en'?b:a;
+    for(let i=stmts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[stmts[i],stmts[j]]=[stmts[j],stmts[i]];}
+    return stmts;
+}
+
+// ================================================================
+//  GAME FLOW — Race to 10 + Roulette + Shield
+// ================================================================
+const WIN_SCORE=10;
+
+function startVote(){
+    if(ST.p1.score>=WIN_SCORE||ST.p2.score>=WIN_SCORE){endGame();return;}
+    if(ST.ci>=ST.stmts.length){
+        for(let i=ST.stmts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ST.stmts[i],ST.stmts[j]]=[ST.stmts[j],ST.stmts[i]];}
+        ST.ci=0;
+    }
+    ST.votes={p1:null,p2:null};ST.voter=1;
+    const s=ST.stmts[ST.ci];
+    $('vStatement').textContent=s.text;
+    $('vProgress').textContent=ST.p1.score+' — '+ST.p2.score+' (→'+WIN_SCORE+')';
+    const maxS=Math.max(ST.p1.score,ST.p2.score);
+    $('vBar').style.width=(maxS/WIN_SCORE*100)+'%';
+    $('vScore1').innerHTML='<span class="pip p1"></span> '+ST.p1.name+': '+ST.p1.score+(ST.p1.shield>0?' <span class="shield-badge">🛡️×'+ST.p1.shield+'</span>':'');
+    $('vScore2').innerHTML='<span class="pip p2"></span> '+ST.p2.name+': '+ST.p2.score+(ST.p2.shield>0?' <span class="shield-badge">🛡️×'+ST.p2.shield+'</span>':'');
+    $('voteArea').style.display='flex';$('vWaiting').style.display='none';
+    $('btnAgree').classList.remove('voted','chosen');$('btnDisagree').classList.remove('voted','chosen');
+    updVL();showS('vote');
+}
+
+function updVL(){
+    const n=ST.voter===1?ST.p1.name:ST.p2.name,c=ST.voter===1?'var(--rose)':'var(--amber)';
+    $('voterLabel').innerHTML='<span style="color:'+c+';">● '+n+'</span>'+t('vote_now');
+}
+
+function castVote(agree){
+    const k=ST.voter===1?'p1':'p2';ST.votes[k]=agree?'agree':'disagree';
+    if(agree){$('btnAgree').classList.add('chosen');$('btnDisagree').classList.add('voted');}
+    else{$('btnDisagree').classList.add('chosen');$('btnAgree').classList.add('voted');}
+    if(ST.voter===1){ST.voter=2;setTimeout(()=>{$('voteArea').style.display='none';$('vWaiting').innerHTML=t('pass_to')+' <strong>'+ST.p2.name+'</strong>';$('vWaiting').style.display='block';setTimeout(()=>{$('voteArea').style.display='flex';$('vWaiting').style.display='none';$('btnAgree').classList.remove('voted','chosen');$('btnDisagree').classList.remove('voted','chosen');updVL();},2000);},400);}
+    else{setTimeout(()=>doReveal(),500);}
+}
+
+function doReveal(){
+    const s=ST.stmts[ST.ci];const isE=s.source===0;
+    // Render collision reasoning
+    const rc=$('rCollision');
+    if(s.collision&&s.collision.length>0){
+        let html='<div class="collision-box"><div class="collision-title">'+t('collision_title')+'</div>';
+        s.collision.forEach(c=>{
+            html+='<div class="collision-item"><span class="collision-balise">'+c.balise+'</span><span class="collision-detail">'+c.detail+'</span></div>';
+        });
+        html+='</div>';rc.innerHTML=html;rc.style.display='block';
+    }else{rc.style.display='none';}
+    $('rVote1').textContent=ST.p1.name+': '+(ST.votes.p1==='agree'?'👍':'👎');$('rVote1').style.background='var(--rose-dim)';$('rVote1').style.color='var(--rose)';
+    $('rVote2').textContent=ST.p2.name+': '+(ST.votes.p2==='agree'?'👍':'👎');$('rVote2').style.background='var(--amber-dim)';$('rVote2').style.color='var(--amber)';
+    const ca=$('conseqArea'),cb=$('conseqBtns');cb.innerHTML='';
+    if(isE){
+        $('rSource').textContent=t('universal_law');$('rSource').style.color='#a78bfa';
+        $('rStatement').textContent='« '+s.text+' »';
+        const bA=ST.votes.p1==='agree'&&ST.votes.p2==='agree',bD=ST.votes.p1!=='agree'&&ST.votes.p2!=='agree';
+        if(bA){ST.p1.shield++;ST.p2.shield++;$('rVerdict').innerHTML=t('resonance');$('rVerdict').style.color='var(--green)';ca.style.display='none';}
+        else if(bD){$('rVerdict').textContent=t('double_denial');$('rVerdict').style.color='var(--red)';ca.style.display='none';}
+        else{const wK=ST.votes.p1==='agree'?'p1':'p2',lK=wK==='p1'?'p2':'p1';ST[wK].score++;$('rVerdict').textContent='⚡ '+ST[wK].name+t('is_lucid');$('rVerdict').style.color='var(--amber)';ca.style.display='block';$('conseqLabel').textContent='';spinRoulette(cb,ca,ST[wK].name,ST[lK].name,lK);}
+    }else{
+        const srcK=s.source===1?'p1':'p2',othK=srcK==='p1'?'p2':'p1';
+        const srcN=ST[srcK].name,othN=ST[othK].name,srcC=s.source===1?'var(--rose)':'var(--amber)';
+        $('rSource').textContent=srcN;$('rSource').style.color=srcC;$('rStatement').textContent='« '+s.text+' »';
+        if(ST.votes[srcK]!=='agree'){
+            $('rVerdict').textContent='💀 '+srcN+t('denies');$('rVerdict').style.color='var(--red)';
+            if(ST[srcK].shield>0){ca.style.display='block';$('conseqLabel').innerHTML='🛡️ <strong>'+srcN+'</strong>'+t('shield_bet');showShieldBet(cb,ca,srcK,srcN,othN);}
+            else{ca.style.display='block';$('conseqLabel').textContent='Roulette...';spinRoulette(cb,ca,othN,srcN,srcK);}
+        }else{
+            ST[srcK].score++;$('rVerdict').textContent='✨ '+srcN+t('owns_it')+othN+'...';$('rVerdict').style.color='var(--green)';
+            ca.style.display='block';$('conseqLabel').textContent='';spinRoulette(cb,ca,srcN,othN,othK);
+        }
+    }
+    showS('reveal');
+}
+
+function showShieldBet(cb,ca,lK,lN,wN){
+    cb.innerHTML='';
+    const mk=(label,betOn)=>{const b=document.createElement('button');b.className='shield-btn';b.textContent=label;
+        b.addEventListener('click',()=>{ST[lK].shield--;const rng=Math.random()>.5?'shot':'question';
+            if(rng===betOn){$('rVerdict').innerHTML=t('shield_activated');$('rVerdict').style.color='var(--green)';ca.style.display='none';}
+            else{ST[lK].score=Math.max(0,ST[lK].score-1);$('rVerdict').innerHTML=t('shield_broken');$('rVerdict').style.color='var(--red)';
+                if(rng==='question'){ca.style.display='block';$('conseqLabel').textContent=t('theme_label');cb.innerHTML='';showQTheme(cb,ca,wN,lN);}
+                else{ca.style.display='none';$('rVerdict').innerHTML+=' + 🥃 Shot !';}
+            }});return b;};
+    cb.appendChild(mk(t('bet_shot'),'shot'));
+    cb.appendChild(mk(t('bet_question'),'question'));
+    const nb=document.createElement('button');nb.className='conseq-btn';nb.style.cssText='border-color:var(--muted);color:var(--muted);';nb.textContent=t('no_bet');
+    nb.addEventListener('click',()=>{$('conseqLabel').textContent='Roulette...';cb.innerHTML='';spinRoulette(cb,ca,wN,lN,lK);});
+    cb.appendChild(nb);
+}
+
+function spinRoulette(cb,ca,wN,lN,lK){
+    cb.innerHTML='';const row=document.createElement('div');row.className='roulette';
+    const s1=document.createElement('div');s1.className='roulette-slot';s1.innerHTML='🥃<div class="rl">SHOT</div>';
+    const s2=document.createElement('div');s2.className='roulette-slot';s2.innerHTML='❓<div class="rl">QUESTION</div>';
+    row.appendChild(s1);row.appendChild(s2);cb.appendChild(row);
+    let tc=0;const mx=12+Math.floor(Math.random()*6);
+    const iv=setInterval(()=>{s1.classList.toggle('active',tc%2===0);s2.classList.toggle('active',tc%2===1);tc++;
+        if(tc>=mx){clearInterval(iv);const r=Math.random()>.5?'shot':'question';s1.classList.toggle('active',r==='shot');s2.classList.toggle('active',r==='question');
+            setTimeout(()=>{cb.innerHTML='';if(r==='shot'){$('rVerdict').textContent='🥃 '+lN+t('drinks');$('rVerdict').style.color='var(--amber)';ca.style.display='none';}
+            else{$('conseqLabel').textContent=lN+t('picks_theme');showQTheme(cb,ca,wN,lN);}},800);}
+    },150);
+}
+
+function showQTheme(cb,ca,wN,lN){
+    const tr=document.createElement('div');tr.style.cssText='display:flex;gap:6px;';
+    [{l:t('theme_perso')},{l:t('theme_spicy')},{l:t('theme_goofy')}].forEach(th=>{
+        const tb=document.createElement('button');tb.className='theme-btn';tb.textContent=th.l;
+        tb.addEventListener('click',()=>{cb.innerHTML='';$('conseqLabel').textContent='';$('rVerdict').innerHTML='🎤 <strong>'+wN+'</strong>'+t('question_to')+'<strong>'+th.l+'</strong> → '+lN+'<br><span style="font-size:10px;color:var(--muted);">'+t('refusal')+'</span>';$('rVerdict').style.color='var(--rose)';ca.style.display='none';});
+        tr.appendChild(tb);});cb.appendChild(tr);
+}
+
+function skipQ(){ST.ci++;startVote();}
+
+function endGame(){
+    const s1=ST.p1.score,s2=ST.p2.score,n1=ST.p1.name,n2=ST.p2.name;
+    const w=s1>=WIN_SCORE?n1:s2>=WIN_SCORE?n2:(s1>s2?n1:n2);
+    $('endScores').innerHTML='<div style="display:flex;gap:20px;justify-content:center;margin-bottom:14px;"><div style="text-align:center;"><div class="pip p1" style="width:14px;height:14px;margin:0 auto 4px;"></div><div class="serif" style="font-size:26px;font-weight:900;color:var(--rose);">'+s1+'</div><div style="font-size:12px;color:var(--muted);">'+n1+'</div></div><div style="font-size:24px;color:var(--muted);align-self:center;">—</div><div style="text-align:center;"><div class="pip p2" style="width:14px;height:14px;margin:0 auto 4px;"></div><div class="serif" style="font-size:26px;font-weight:900;color:var(--amber);">'+s2+'</div><div style="font-size:12px;color:var(--muted);">'+n2+'</div></div></div><div class="serif" style="font-size:16px;font-weight:900;color:var(--cream);">'+w+' WINS 🏆</div>';
+    showS('endScreen');
+}
+
+
+// ================================================================
+//  CODEX — Game Bible
+// ================================================================
+const CODEX_TABS=[{id:'overview',label:'🪞 Aperçu'},{id:'flow',label:'🔄 Déroulement'},{id:'themes',label:'🎯 Thèmes'},{id:'prismes',label:'🔬 Prismes'},{id:'cards',label:'🃏 Conséquences'},{id:'ia',label:'🤖 L\'IA'},{id:'privacy',label:'🔒 Données'}];
+
+const CODEX={
+overview:`<h2>🪞 Black Mirror</h2>
+<p><strong>Black Mirror</strong> est un jeu de date alimenté par l'IA. Elle formule des <strong>opinions tranchées sur le monde</strong> au "Je pense que..." — secrètement calibrées par vos photos et tags. Vous votez sans savoir qui est ciblé.</p>
+<h3>Concept</h3>
+<p>L'IA analyse vos photos (classées en 5 dossiers : MOI, LIEUX, LOISIRS, ÉCRANS, CHATS), vos réponses quiz et votre bio pour générer des <strong>hot takes</strong> — des constats piquants mais inclusifs sur ce que vos objets révèlent du monde actuel.</p>
+<h3>Pour qui ?</h3>
+<p>2 joueurs, un seul téléphone. Premier rendez-vous, soirée entre amis, ou toute situation où vous voulez dépasser le small talk.</p>
+<div class="cb"><strong style="color:var(--rose);">Philosophie Zéro Friction</strong><br>Le téléphone donne des ordres et des thèmes. Les vraies conversations se font <strong>à voix haute</strong>, en contact visuel.</div>`,
+
+flow:`<h2>🔄 Déroulement</h2>
+<h3>Phase 1 — Profilage</h3>
+<div class="cb"><strong>Joueur 1</strong> entre son prénom, uploade ses photos dans <strong>5 dossiers de preuves</strong> (MOI, LIEUX, LOISIRS, ÉCRANS, CHATS — 3 photos max chacun) et remplit sa bio. Puis il répond à <strong>7 questions</strong> piochées au hasard parmi 30.<br><br><strong>Passe le téléphone →</strong><br><br><strong>Joueur 2</strong> fait pareil avec 7 questions différentes.</div>
+<h3>Phase 2 — La Forge</h3>
+<p>Gemini 1.5 Pro analyse tout : texte, images, quiz. Elle scanne les balises (pop-culture, géo, statut), utilise Google Search pour le contexte 2026, puis génère <strong>27 hot takes</strong> : 10 par joueur + 7 Lois Universelles (Entropie).</p>
+<h3>Phase 3 — Vote</h3>
+<div class="cb">Hot take affichée, origine masquée.<br><strong>J1</strong> vote 👍/👎 → passe le tel → <strong>J2</strong> vote → révélation.</div>
+<h3>Phase 4 — Révélation</h3>
+<div class="cb"><strong style="color:var(--red);">Ciblé + PAS D'ACCORD :</strong> 🥃 1 shot + explication orale.<br><br><strong style="color:var(--green);">Ciblé + D'ACCORD :</strong> +1 point, choisit une sentence : 🥃 shot OU ❓ question (Perso/Spicy/Goofy). Refus = shot.</div>
+<p>Après les 27 hot takes → score final. Bouton <strong>SKIP</strong> disponible à tout moment.</p>`,
+
+themes:`<h2>🎯 Les 20 Thèmes</h2>
+<p>Un thème différent pour chaque hot take.</p>
+<div class="theme-row"><span class="theme-icon">🐾</span><strong>Animaux</strong> — Rapport au vivant</div>
+<div class="theme-row"><span class="theme-icon">🎨</span><strong>Passions</strong> — Investissement dans les loisirs</div>
+<div class="theme-row"><span class="theme-icon">🎵</span><strong>Musique</strong> — Identité par le son</div>
+<div class="theme-row"><span class="theme-icon">🎭</span><strong>Culture</strong> — Rapport à l'art</div>
+<div class="theme-row"><span class="theme-icon">🧠</span><strong>Émotions</strong> — Gestion des sentiments</div>
+<div class="theme-row"><span class="theme-icon">🎬</span><strong>Cinéma</strong> — Consommation d'images</div>
+<div class="theme-row"><span class="theme-icon">🗳️</span><strong>Engagement</strong> — Vision de la cité</div>
+<div class="theme-row"><span class="theme-icon">💼</span><strong>Travail</strong> — Place du labeur</div>
+<div class="theme-row"><span class="theme-icon">❤️</span><strong>Sentimental</strong> — Conception du couple</div>
+<div class="theme-row"><span class="theme-icon">📱</span><strong>Technologie</strong> — Rapport aux écrans</div>
+<div class="theme-row"><span class="theme-icon">🍽️</span><strong>Gastronomie</strong> — Rapport à la table</div>
+<div class="theme-row"><span class="theme-icon">🏋️</span><strong>Sport</strong> — Rapport au corps</div>
+<div class="theme-row"><span class="theme-icon">👕</span><strong>Mode</strong> — Image de soi</div>
+<div class="theme-row"><span class="theme-icon">💰</span><strong>Argent</strong> — Rapport à la possession</div>
+<div class="theme-row"><span class="theme-icon">🤝</span><strong>Amitié</strong> — Cercle social</div>
+<div class="theme-row"><span class="theme-icon">🏠</span><strong>Espace</strong> — Rapport au foyer</div>
+<div class="theme-row"><span class="theme-icon">👨‍👩‍👧</span><strong>Famille</strong> — Poids des racines</div>
+<div class="theme-row"><span class="theme-icon">🌑</span><strong>Nuit</strong> — Rapport à l'excès</div>
+<div class="theme-row"><span class="theme-icon">🧭</span><strong>Aventure</strong> — Rapport à l'inconnu</div>
+<div class="theme-row"><span class="theme-icon">🃏</span><strong>Humour</strong> — Limites du rire</div>`,
+
+prismes:`<h2>🔬 Les 4 Prismes + Entropie</h2>
+<p>Chaque hot take est construite à travers un prisme. 5 par prisme A-D (20 ciblées) + 7 Entropie = 27 total.</p>
+<div class="cb"><span class="tag a">PRISME A</span><h3>🎭 Hypocrisie de Posture</h3><p>Compare une réponse "noble" à un détail "matériel" des photos.</p></div>
+<div class="cb"><span class="tag b">PRISME B</span><h3>🐑 Cliché d'Originalité</h3><p>Ce que le joueur pense unique, traité comme du conformisme de masse.</p></div>
+<div class="cb"><span class="tag c">PRISME C</span><h3>📱 Validation Digitale</h3><p>Le besoin de mise en scène visible dans les screenshots.</p></div>
+<div class="cb"><span class="tag d">PRISME D</span><h3>😰 Anxiété Sociale</h3><p>La peur profonde cachée derrière un trait de caractère.</p></div>
+<div class="cb" style="border-color:#a78bfa;"><span class="tag" style="background:rgba(139,92,246,.12);color:#a78bfa;">PRISME E</span><h3>🌀 Entropie — La 3ème Voie</h3><p>7 phrases qui ne ciblent personne. Même protocole que les autres : <strong>collision de 3+ balises</strong> croisées entre les deux profils + <strong>Google Search</strong> pour chaque phrase. Constats sur l'époque ancrés dans les objets/marques réels trouvés chez les deux joueurs.</p>
+<p><strong>Règles Entropie :</strong> Les deux votent. Consensus = rien. Double déni = shot chacun. Désaccord = le lucide sentence l'autre.</p></div>
+<h3>Les 5 Pièces à Conviction</h3>
+<p>L'IA classe les photos en 5 dossiers avant d'extraire les 12 balises :</p>
+<div class="cb">📸 <strong>MOI</strong> — Ego, style, image de soi<br>🏙️ <strong>LIEUX</strong> — Quartier, gentrification, clichés<br>🎨 <strong>LOISIRS</strong> — Passions, hobbies, postures<br>📱 <strong>ÉCRANS</strong> — Apps, dépendances, screen time<br>💬 <strong>CHATS</strong> — Ton, hypocrisie, langage</div>
+<p>Puis les <strong>12 balises</strong> : pop-culture, géo, statut, dissonance, obsolescence, micro-signal, arrière-plan, lexique, temporalité, conformisme, ego, dépendance.</p>
+<p>Le <strong>Quiz des Opposés</strong> fournit les postures déclarées que l'IA confronte aux preuves visuelles pour détecter les dissonances.</p>`,
+
+cards:`<h2>🃏 Conséquences</h2>
+<h3>🏆 Course aux 10 Points</h3>
+<p>La partie ne s'arrête plus après 27 questions. Les statements se recyclent jusqu'à ce qu'un joueur atteigne <strong>10 points</strong>.</p>
+<h3>Ciblé + D'ACCORD = +1 pt + Roulette</h3>
+<div class="cb"><strong style="color:var(--green);">Le joueur assume.</strong> +1 point. Une <strong>🎰 Roulette</strong> tourne et décide aléatoirement de la sentence pour l'adversaire :<br>• 🥃 <strong>Shot</strong> — L'autre boit<br>• ❓ <strong>Question</strong> — L'autre choisit Perso/Spicy/Goofy, refus = shot</div>
+<h3>Ciblé + PAS D'ACCORD = Défaite</h3>
+<div class="cb"><strong style="color:var(--red);">Le joueur nie.</strong> Il subit la Roulette. Mais s'il a un <strong>🛡️ Bouclier</strong>, il peut le parier.</div>
+<h3>🛡️ Le Pari du Bouclier</h3>
+<div class="cb"><strong>Obtention :</strong> Gagné lors d'une <strong>Résonance</strong> (les 2 joueurs votent D'accord sur une Loi Universelle). +1 bouclier chacun.<br><br>
+<strong>Utilisation :</strong> En cas de défaite, pariez votre bouclier sur la sentence que vous voulez éviter :<br>
+• "Bouclier sur Shot" ou "Bouclier sur Question"<br><br>
+<strong style="color:var(--green);">Succès :</strong> La roulette tombe sur ce que vous avez parié → vous êtes sauvé !<br>
+<strong style="color:var(--red);">Échec :</strong> La roulette tombe sur l'autre → bouclier brisé, <strong>-1 point</strong>, et vous subissez la sentence.</div>
+<h3>Entropie — Loi Universelle</h3>
+<div class="cb">Les 2 votent. <strong>Consensus</strong> (les 2 d'accord) = Résonance → +1 🛡️ chacun. <strong>Double déni</strong> = shot chacun. <strong>Désaccord</strong> = le lucide +1 pt + roulette pour l'autre.</div>
+<h3>SKIP</h3>
+<p>Bouton en haut à droite. Passe une affirmation. Aucune pénalité.</p>`,
+
+ia:`<h2>🤖 L'IA — La Forge</h2>
+<h3>Moteur : Gemini 1.5 Pro</h3>
+<p>Modèle multimodal de Google — analyse texte + images simultanément.</p>
+<h3>Le Miroir Déformant</h3>
+<p>L'IA n'est pas un juge — c'est un <strong>avatar cynique</strong>. Elle formule des opinions sur le monde au "Je pense que..." qui semblent générales mais sont secrètement calibrées par vos tags et photos. Au "On" pour les vérités générationnelles.</p>
+<h3>Sources analysées</h3>
+<div class="cb"><strong>5 Pièces à Conviction</strong> — Photos pré-classées + lentilles d'analyse :<br>• 🤳 <strong>MOI</strong> → Posture & Énergie (cadrage, lumière, mise en scène)<br>• 🌍 <strong>LIEUX</strong> → Sémiotique de l'Espace (conformisme, solitude urbaine)<br>• 🎨 <strong>LOISIRS</strong> → Archéologie du Paraître (hobby pratiqué vs scénographié)<br>• 📱 <strong>ÉCRANS</strong> → Pollution Numérique (surcharge cognitive, apps contradictoires)<br>• 💬 <strong>CHATS</strong> → Syntaxe du Vide (hypocrisie, fatigue émotionnelle, contrôle)<br><br>+ <strong>12 balises</strong> (pop-culture, géo, statut, dissonance...)<br>+ <strong>Collisions inter-dossiers</strong> : MOI×ÉCRANS, LIEUX×CHATS, etc.<br>+ <strong>Quiz des Opposés</strong> : postures déclarées confrontées aux indices de vie</div>
+<h3>Méthode : Deep Search</h3>
+<div class="cb">1. <strong>Extraction de Vibe</strong> : analyse les 5 dossiers comme des intentions, pas des faits<br>2. <strong>Collision & Alliance</strong> : 70% dissonance Tag×Photo, 30% cohérence ironique<br>3. <strong>Contexte 2026 (Web)</strong> : Google Search pour lier à une tendance réelle<br>4. <strong>Opinions sur le monde</strong> : "Je pense que..." calibré sur le joueur, "On" pour les vérités d'époque</div>
+<h3>Banque de quiz</h3>
+<p><strong>30 questions</strong> : ego, paraître, contradictions, nuit, digital, snobisme, ambition, amour, sport, famille… <strong>7 tirées au hasard</strong> par joueur, différentes à chaque partie.</p>
+<h3>Style : 15 mots max</h3>
+<p>Chaque phrase est limitée à <strong>15 mots maximum</strong>. Voix au "Je pense que..." (opinions calibrées) ou au "On" (vérités d'époque). L'opinion semble générale mais touche le joueur sans le nommer.</p>`,
+
+privacy:`<h2>🔒 Données</h2>
+<h3>Privacy by Design</h3>
+<div class="cb">• Données envoyées <strong>une seule fois</strong> à Gemini<br>• Images <strong>supprimées</strong> après l'appel API<br>• <strong>Aucun stockage</strong> — ni local, ni serveur<br>• Chaque partie repart de zéro</div>
+<h3>Anonymisation automatique</h3>
+<div class="cb">Avant envoi, un script supprime :<br>• Téléphones → <span class="tag a">[TEL]</span><br>• Emails → <span class="tag a">[EMAIL]</span><br>• URLs → <span class="tag a">[URL]</span><br>• @handles → <span class="tag a">[HANDLE]</span></div>
+<h3>Zones interdites</h3>
+<div class="cb" style="border-color:var(--red);">❌ Apparence physique / poids<br>❌ Race / ethnie / origines<br>❌ Religion / croyances<br>❌ Orientation sexuelle<br>❌ Handicap<br>❌ Santé mentale / traumatismes</div>
+<h3>Compression</h3>
+<p>Screenshots redimensionnés (800px max) et compressés (JPEG 70%) avant envoi.</p>`,
+};
+
+function openCodex(tab){$('codexOv').classList.add('open');renderCodexTabs(tab||'overview');}
+function closeCodex(){$('codexOv').classList.remove('open');}
+function renderCodexTabs(id){
+    $('codexTabs').innerHTML='';
+    CODEX_TABS.forEach(tb=>{const b=document.createElement('button');b.className='codex-tab'+(tb.id===id?' active':'');b.textContent=tb.label;b.addEventListener('click',()=>renderCodexTabs(tb.id));$('codexTabs').appendChild(b);});
+    $('codexBody').innerHTML=CODEX[id]||'';
+}
+
+
+// ================================================================
+//  MULTIPLAYER — PeerJS Networking + Multi Game Flow
+// ================================================================
+const MP={
+    mode:null,        // 'host' | 'player'
+    peer:null,
+    conns:[],         // host: array of connections
+    hostConn:null,    // player: connection to host
+    lobbyCode:'',
+    players:{},       // {peerId: {name,age,tags,imgs,quiz,ready,vote}}
+    myId:'',
+    hostPlays:true,
+    photosRequired:false,
+    stmts:[],
+    ci:0,
+    _quizPick:null,
+    myProfile:{name:'',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{}}
+};
+
+function genLobbyCode(){
+    const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let r='';for(let i=0;i<5;i++) r+=c[Math.floor(Math.random()*c.length)];
+    return r;
+}
+
+// ── HOST: Create lobby ──
+function hostCreateLobby(){
+    MP.mode='host';
+    MP.lobbyCode=genLobbyCode();
+    MP.players={};MP.conns=[];
+    $('lobbyCode').textContent=MP.lobbyCode;
+    renderLobbyPlayers();
+    showS('hostLobby');
+
+    MP.peer=new Peer('bm-'+MP.lobbyCode,{debug:0});
+    MP.peer.on('open',id=>{MP.myId=id;console.log('Host ready:',id);});
+    MP.peer.on('connection',conn=>{
+        MP.conns.push(conn);
+        conn.on('data',data=>hostHandleMsg(conn,data));
+        conn.on('close',()=>{
+            MP.conns=MP.conns.filter(c=>c!==conn);
+            delete MP.players[conn.peer];
+            renderLobbyPlayers();
+        });
+    });
+    MP.peer.on('error',e=>console.error('Peer error:',e));
+
+    // If host plays, add self
+    if(MP.hostPlays){
+        MP.players['__host__']={name:'',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{},ready:false,vote:null};
+    }
+}
+
+function hostHandleMsg(conn,msg){
+    if(msg.type==='join'){
+        MP.players[conn.peer]={name:msg.name||'???',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{},ready:false,vote:null};
+        conn.send({type:'joined',code:MP.lobbyCode,photosRequired:MP.photosRequired,lang:ST.lang});
+        renderLobbyPlayers();
+    }
+    else if(msg.type==='profile'){
+        const p=MP.players[conn.peer];
+        if(p){Object.assign(p,msg.data,{ready:true});renderLobbyPlayers();}
+    }
+    else if(msg.type==='vote'){
+        const p=MP.players[conn.peer];
+        if(p) p.vote=msg.value;
+        checkAllVotes();
+    }
+    else if(msg.type==='choose_target'){
+        multiDoConsequence(msg.targetId);
+    }
+}
+
+function renderLobbyPlayers(){
+    const c=$('lobbyPlayers');c.innerHTML='';
+    const entries=Object.entries(MP.players);
+    entries.forEach(([id,p])=>{
+        const div=document.createElement('div');div.className='lobby-player';
+        const isHost=id==='__host__';
+        div.innerHTML=`<div class="lp-dot ${p.ready?'ready':'waiting'}"></div>
+            <div class="lp-name">${p.name||(isHost?'👑 Hôte':'...')}</div>
+            <div class="lp-status">${p.ready?(ST.lang==='en'?'Ready':'Prêt'):(ST.lang==='en'?'Setting up...':'En cours...')}</div>`;
+        c.appendChild(div);
+    });
+    $('lobbyWaiting').style.display=entries.length<2?'block':'none';
+    // Enable start if 2+ players and all ready (except host who might not be ready yet)
+    const playersReady=entries.filter(([id,p])=>id!=='__host__'&&p.ready).length;
+    const hostReady=!MP.hostPlays||MP.players['__host__']?.ready;
+    const canStart=playersReady>=1&&hostReady;
+    $('btnHostStart').style.opacity=canStart?'1':'.4';
+    $('btnHostStart').style.pointerEvents=canStart?'auto':'none';
+}
+
+// ── HOST: Broadcast to all players ──
+function hostBroadcast(msg){
+    MP.conns.forEach(c=>{try{c.send(msg);}catch(e){}});
+}
+
+// ── PLAYER: Join lobby ──
+function playerJoinLobby(code){
+    MP.mode='player';
+    MP.lobbyCode=code.toUpperCase();
+    $('joinError').style.display='none';
+
+    MP.peer=new Peer(undefined,{debug:0});
+    MP.peer.on('open',id=>{
+        MP.myId=id;
+        const conn=MP.peer.connect('bm-'+MP.lobbyCode,{reliable:true});
+        MP.hostConn=conn;
+        conn.on('open',()=>{
+            conn.send({type:'join',name:''});
+        });
+        conn.on('data',data=>playerHandleMsg(data));
+        conn.on('close',()=>{showS('menu');});
+        conn.on('error',e=>{
+            $('joinError').textContent=ST.lang==='en'?'Connection failed':'Connexion échouée';
+            $('joinError').style.display='block';
+        });
+    });
+    MP.peer.on('error',e=>{
+        $('joinError').textContent=ST.lang==='en'?'Lobby not found':'Partie introuvable';
+        $('joinError').style.display='block';
+    });
+}
+
+function playerHandleMsg(msg){
+    if(msg.type==='joined'){
+        MP.photosRequired=msg.photosRequired;
+        if(msg.lang) ST.lang=msg.lang;
+        // Show/hide photo section
+        const ps=$('mPhotoSection');
+        if(ps) ps.style.display=MP.photosRequired?'block':'none';
+        initMultiSetup();
+        showS('multiSetup');
+    }
+    else if(msg.type==='game_start'){
+        MP.stmts=msg.statements;MP.ci=0;
+        showMultiVote();
+    }
+    else if(msg.type==='reveal'){
+        showMultiReveal(msg);
+    }
+    else if(msg.type==='next'){
+        MP.ci=msg.ci;
+        showMultiVote();
+    }
+    else if(msg.type==='choose'){
+        showMultiChoose(msg);
+    }
+    else if(msg.type==='consequence'){
+        showMultiConsequence(msg);
+    }
+}
+
+// ── MULTI SETUP (player phone) ──
+function initMultiSetup(){
+    // Init upload grid for multi
+    renderMultiUploadSections();
+    renderTagSelector('mTagSelector','mTagCount','_mp');
+    if(!MP._quizPick) MP._quizPick=pickRandomQuiz();
+    renderMultiQuiz();
+}
+
+// Temporary storage for multi player profile
+ST._mp={tags:[]};
+
+function renderMultiUploadSections(){
+    const container=$('mUploadGrid');container.innerHTML='';
+    UPLOAD_CATS.forEach(cat=>{
+        const imgs=MP.myProfile.imgs[cat.id];
+        const wrap=document.createElement('div');
+        wrap.className='gcard';wrap.style.padding='10px';
+        wrap.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div><div style="font-size:11px;font-weight:700;">${t(cat.tl)}</div>
+            <div style="font-size:9px;color:var(--muted);">${t(cat.ts)}</div></div>
+            <div style="font-size:10px;color:var(--rose);font-weight:700;">${imgs.length}/3</div>
+        </div><div class="img-gallery" style="grid-template-columns:repeat(4,1fr);gap:6px;"></div>`;
+        const gal=wrap.querySelector('.img-gallery');
+        imgs.forEach((src,i)=>{
+            const th=document.createElement('div');th.className='img-thumb';
+            th.innerHTML='<img src="'+src+'"><div class="rm">✕</div>';
+            th.querySelector('.rm').addEventListener('click',e=>{e.stopPropagation();MP.myProfile.imgs[cat.id].splice(i,1);renderMultiUploadSections();});
+            gal.appendChild(th);
+        });
+        if(imgs.length<3){
+            const add=document.createElement('div');add.className='img-add';
+            add.innerHTML='<span>+</span><input type="file" accept="image/*" multiple>';
+            add.querySelector('input').addEventListener('change',e=>{
+                const files=Array.from(e.target.files).slice(0,3-imgs.length);
+                let done=0;
+                files.forEach(f=>{compressImage(f,800,.7,b64=>{MP.myProfile.imgs[cat.id].push(b64);done++;if(done===files.length)renderMultiUploadSections();});});
+            });
+            gal.appendChild(add);
+        }
+        container.appendChild(wrap);
+    });
+}
+
+function renderMultiQuiz(){
+    const c=$('mQuizBody');c.innerHTML='';
+    const questions=MP._quizPick;
+    questions.forEach(q=>{
+        const qData=ST.lang==='en'&&QUIZ_EN[q.id]?QUIZ_EN[q.id]:q;
+        const wrap=document.createElement('div');
+        wrap.innerHTML='<div class="quiz-q">'+qData.q+'</div>';
+        const row=document.createElement('div');row.className='quiz-opts';
+        const opts=ST.lang==='en'&&QUIZ_EN[q.id]?QUIZ_EN[q.id].opts:q.opts;
+        opts.forEach(o=>{
+            const btn=document.createElement('div');btn.className='quiz-opt';btn.textContent=o;
+            if(MP.myProfile.quiz[q.id]===o) btn.classList.add('sel');
+            btn.addEventListener('click',()=>{row.querySelectorAll('.quiz-opt').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');MP.myProfile.quiz[q.id]=o;});
+            row.appendChild(btn);
+        });
+        wrap.appendChild(row);c.appendChild(wrap);
+    });
+}
+
+// ── MULTI VOTE ──
+function showMultiVote(){
+    if(MP.ci>=MP.stmts.length){MP.ci=0;}
+    const s=MP.stmts[MP.ci];
+    $('mVoteStatement').textContent=s.text;
+    $('mVoteRound').textContent=(MP.ci+1)+'/'+MP.stmts.length;
+    $('mBtnAgree').classList.remove('voted','chosen');
+    $('mBtnDisagree').classList.remove('voted','chosen');
+    $('mBtnAgree').style.pointerEvents='auto';
+    $('mBtnDisagree').style.pointerEvents='auto';
+    $('mVoteWaiting').style.display='none';
+    showS('multiVote');
+}
+
+function multiCastVote(agree){
+    $('mBtnAgree').style.pointerEvents='none';
+    $('mBtnDisagree').style.pointerEvents='none';
+    if(agree){$('mBtnAgree').classList.add('chosen');$('mBtnDisagree').classList.add('voted');}
+    else{$('mBtnDisagree').classList.add('chosen');$('mBtnAgree').classList.add('voted');}
+    $('mVoteWaiting').style.display='block';
+
+    if(MP.mode==='host'){
+        if(MP.players['__host__']) MP.players['__host__'].vote=agree?'agree':'disagree';
+        checkAllVotes();
+    } else {
+        MP.hostConn.send({type:'vote',value:agree?'agree':'disagree'});
+    }
+}
+
+// ── HOST: Check all votes ──
+function checkAllVotes(){
+    const entries=Object.entries(MP.players);
+    const allVoted=entries.every(([id,p])=>p.vote!==null);
+    if(!allVoted) return;
+
+    const s=MP.stmts[MP.ci];
+    const isEntropy=s.source===0;
+
+    // Find target player
+    let targetId=null,targetName='';
+    if(!isEntropy){
+        const playerList=entries.filter(([id])=>id!=='__host__'||MP.hostPlays);
+        const srcIdx=(s.source-1)%playerList.length;
+        targetId=playerList[srcIdx]?playerList[srcIdx][0]:null;
+        targetName=targetId?MP.players[targetId].name:'???';
+    }
+
+    // Build votes display
+    const votes={};
+    entries.forEach(([id,p])=>{votes[id]={name:p.name,vote:p.vote};});
+
+    // Determine result
+    let result;
+    if(isEntropy){
+        result={type:'entropy',votes};
+    } else {
+        const targetVote=MP.players[targetId]?.vote;
+        if(targetVote==='disagree'){
+            result={type:'target_wrong',targetId,targetName,votes};
+        } else {
+            result={type:'target_right',targetId,targetName,votes};
+        }
+    }
+
+    const revealMsg={type:'reveal',statement:s,result,ci:MP.ci};
+    hostBroadcast(revealMsg);
+    // Also show on host
+    showMultiReveal(revealMsg);
+
+    // Reset votes
+    entries.forEach(([id,p])=>{p.vote=null;});
+}
+
+// ── MULTI REVEAL ──
+function showMultiReveal(msg){
+    const s=msg.statement;const r=msg.result;
+    if(r.type==='entropy'){
+        $('mRevealTarget').textContent=t('universal_law');
+        $('mRevealTarget').style.color='#a78bfa';
+    } else {
+        $('mRevealTarget').textContent=r.targetName;
+        $('mRevealTarget').style.color='var(--rose)';
+    }
+    $('mRevealText').textContent='« '+s.text+' »';
+
+    // Show votes
+    const vDiv=$('mRevealVotes');vDiv.innerHTML='';
+    if(r.votes){
+        Object.entries(r.votes).forEach(([id,v])=>{
+            const sp=document.createElement('span');
+            sp.style.cssText='padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;'+
+                (v.vote==='agree'?'background:rgba(34,197,94,.1);color:var(--green);':'background:rgba(239,68,68,.1);color:var(--red);');
+            sp.textContent=v.name+': '+(v.vote==='agree'?'👍':'👎');
+            vDiv.appendChild(sp);
+        });
+    }
+
+    const actionDiv=$('mRevealAction');actionDiv.innerHTML='';actionDiv.style.display='none';
+
+    if(r.type==='entropy'){
+        $('mRevealVerdict').textContent=ST.lang==='en'?'Universal truth — no consequence':'Vérité universelle — pas de sanction';
+        $('mRevealVerdict').style.color='#a78bfa';
+    } else if(r.type==='target_wrong'){
+        $('mRevealVerdict').textContent='🥃 '+r.targetName+(ST.lang==='en'?' drinks!':' boit !');
+        $('mRevealVerdict').style.color='var(--amber)';
+    } else if(r.type==='target_right'){
+        $('mRevealVerdict').textContent='✨ '+r.targetName+(ST.lang==='en'?' owns it!':' assume !');
+        $('mRevealVerdict').style.color='var(--green)';
+        // Winner chooses who gets the consequence
+        if(MP.mode==='host'&&r.targetId==='__host__' || MP.mode==='player'&&r.targetId===MP.myId){
+            actionDiv.style.display='block';
+            actionDiv.innerHTML='<div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;">'+(ST.lang==='en'?'Pick who takes the consequence:':'Choisis qui prend la sanction :')+'</div>';
+            const grid=document.createElement('div');grid.style.cssText='display:flex;flex-direction:column;gap:6px;';
+            Object.entries(MP.players).forEach(([id,p])=>{
+                if(id===r.targetId) return;
+                const btn=document.createElement('button');btn.className='m-pick-btn';btn.textContent=p.name;
+                btn.addEventListener('click',()=>{
+                    if(MP.mode==='host'){multiDoConsequence(id);}
+                    else{MP.hostConn.send({type:'choose_target',targetId:id});}
+                    actionDiv.style.display='none';
+                });
+                grid.appendChild(btn);
+            });
+            actionDiv.appendChild(grid);
+        }
+    }
+    showS('multiReveal');
+    // Only host can advance
+    $('mBtnNext').style.display=MP.mode==='host'?'block':'none';
+}
+
+function multiDoConsequence(targetId){
+    const p=MP.players[targetId];
+    const targetName=p?.name||'???';
+    // Show coin flip animation on all screens first
+    const startMsg={type:'consequence',targetId,targetName,result:'flipping'};
+    hostBroadcast(startMsg);
+    showMultiConsequence(startMsg);
+    // After animation, reveal result
+    setTimeout(()=>{
+        const coinFlip=Math.random()>.5?'shot':'question';
+        const resultMsg={type:'consequence',targetId,targetName,result:coinFlip};
+        hostBroadcast(resultMsg);
+        showMultiConsequence(resultMsg);
+    },1600);
+}
+
+function showMultiConsequence(msg){
+    const actionDiv=$('mRevealAction');
+    if(msg.result==='flipping'){
+        $('mRevealVerdict').innerHTML=(ST.lang==='en'?'Fate of ':'Sort de ')+'<strong>'+msg.targetName+'</strong>...';
+        $('mRevealVerdict').style.color='var(--muted)';
+        actionDiv.style.display='block';
+        actionDiv.innerHTML='<div style="text-align:center;padding:20px;"><div class="coin">🪙</div></div>';
+    } else if(msg.result==='shot'){
+        $('mRevealVerdict').textContent='🥃 '+msg.targetName+(ST.lang==='en'?' drinks!':' boit !');
+        $('mRevealVerdict').style.color='var(--amber)';
+        actionDiv.style.display='none';
+    } else {
+        $('mRevealVerdict').innerHTML='🎤 '+(ST.lang==='en'?'Question for ':'Question pour ')+'<strong>'+msg.targetName+'</strong>';
+        $('mRevealVerdict').style.color='var(--rose)';
+        // Show theme picker if this player is the target
+        const isMe=(MP.mode==='host'&&msg.targetId==='__host__')||(MP.mode==='player'&&msg.targetId===MP.myId);
+        if(isMe){
+            actionDiv.style.display='block';
+            actionDiv.innerHTML='<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px;">'+(ST.lang==='en'?'Pick a theme:':'Choisis le thème :')+'</div>'+
+                '<div style="display:flex;gap:6px;justify-content:center;">'+
+                '<button class="theme-btn" onclick="this.parentElement.parentElement.style.display=\'none\'">'+t('theme_perso')+'</button>'+
+                '<button class="theme-btn" onclick="this.parentElement.parentElement.style.display=\'none\'">'+t('theme_spicy')+'</button>'+
+                '<button class="theme-btn" onclick="this.parentElement.parentElement.style.display=\'none\'">'+t('theme_goofy')+'</button></div>';
+        } else {
+            actionDiv.style.display='none';
+        }
+    }
+}
+
+// ── HOST: Start game (analyze) ──
+async function hostStartGame(){
+    showS('loading');$('loadError').style.display='none';
+    $('loadMsg').textContent=ST.lang==='en'?'Analyzing all players...':'Analyse de tous les joueurs...';
+
+    // Build player data for AI
+    const playerEntries=Object.entries(MP.players);
+    const n=playerEntries.length;
+
+    const PROXY='/api/gemini';
+
+    const stmtsPerPlayer=Math.max(3,Math.floor(20/n));
+    const entropyCount=7;
+    const totalStmts=stmtsPerPlayer*n+entropyCount;
+
+    // Stage 1: Pro vision
+    const proPrompt='Tu es le module de vision de "Black Mirror" multi-joueur. Scanne les dossiers de photos et croise-les avec les Tags et le Quiz de chaque joueur pour extraire des vulnérabilités.\n\n'+
+        playerEntries.map(([id,p],i)=>'═══ JOUEUR '+(i+1)+': '+p.name+(p.age?' ('+p.age+')':'')+' ═══\nTAGS: '+(p.tags.join(', ')||'(aucun)')+'\nQUIZ: '+(Object.entries(p.quiz).map(([k,v])=>k+': '+v).join(', ')||'(non rempli)')).join('\n\n')+
+        '\n\n'+stmtsPerPlayer+' vulnérabilités par joueur + '+entropyCount+' Entropie croisée.\n'+
+        'Format JSON: {"vulns":[{"source":INDEX_JOUEUR_1_BASED,"theme":"THÈME","type":"dissonance|alliance","proof":"PREUVE","salt":"FAIT 2026"}]}\n'+
+        'source:0 pour Entropie. Utilise Google Search pour les salt.';
+
+    const parts=[{text:proPrompt}];
+    playerEntries.forEach(([id,p],i)=>{
+        const hasImgs=Object.values(p.imgs).some(arr=>arr.length>0);
+        if(hasImgs){
+            UPLOAD_CATS.forEach(cat=>{
+                const arr=p.imgs[cat.id];
+                if(arr.length>0){
+                    parts.push({text:'\n📁 '+p.name+' — '+t(cat.tl)+' ('+arr.length+'):'});
+                    arr.forEach(img=>{
+                        const b64=img.split(',')[1];const m=img.match(/data:(image\/\w+);/);
+                        parts.push({inlineData:{mimeType:m?m[1]:'image/jpeg',data:b64}});
+                    });
+                }
+            });
+        }
+    });
+
+    try{
+        $('loadMsg').textContent=ST.lang==='en'?'Stage 1/2 — Scanning...':'Étape 1/2 — Scan...';
+        const r1=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({model:'gemini-1.5-pro',contents:[{parts}],
+                tools:[{google_search_retrieval:{dynamic_retrieval_config:{mode:'MODE_DYNAMIC',dynamic_threshold:0.3}}}],
+                generationConfig:{temperature:0.8,maxOutputTokens:6000,responseMimeType:'application/json'}})});
+        const d1=await r1.json();
+        if(d1.error) throw new Error(d1.error.message);
+        const raw1=d1.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+        const vulns=JSON.parse(raw1.replace(/```json|```/g,'').trim());
+
+        $('loadMsg').textContent=ST.lang==='en'?'Stage 2/2 — Writing...':'Étape 2/2 — Écriture...';
+        const isEN=ST.lang==='en';
+        const flashPrompt='Tu es l\'avatar cynique de "Black Mirror". Ton ton est celui des réseaux (Twitter/X). Transforme ces vulnérabilités en hot takes virales au "Je".\n'+
+            'Simplicité radicale, effet tweet, 15 mots max, zéro jargon. Ne cite JAMAIS les tags.\n'+
+            (isEN?'Write in English. Openers: I think, Honestly, Hot take:, Ngl, Real talk:, Lowkey.':'Écris en français. Openers: Je pense que, Franchement, Hot take :, En vrai, Perso, C\'est abusé.')+
+            '\nFormat: {"statements":[{"theme":"T","text":"HOT_TAKE","source":1,"collision":[{"balise":"P","detail":"D"}]}]}\n'+
+            JSON.stringify(vulns.vulns);
+
+        const r2=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({model:'gemini-1.5-flash',contents:[{parts:[{text:flashPrompt}]}],generationConfig:{temperature:0.9,maxOutputTokens:4000,responseMimeType:'application/json'}})});
+        const d2=await r2.json();
+        if(d2.error) throw new Error(d2.error.message);
+        const raw2=d2.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+        const parsed=JSON.parse(raw2.replace(/```json|```/g,'').trim());
+
+        if(parsed.statements?.length>0){
+            MP.stmts=parsed.statements;MP.ci=0;
+            hostBroadcast({type:'game_start',statements:MP.stmts});
+            showMultiVote();
+            return;
+        }
+        throw new Error('No statements');
+    }catch(e){
+        console.error('Multi AI error:',e);
+        // Fallback
+        MP.stmts=fallback();MP.ci=0;
+        hostBroadcast({type:'game_start',statements:MP.stmts});
+        showMultiVote();
+    }
+}
+
+// ================================================================
+//  EVENTS
+// ================================================================
+document.addEventListener('DOMContentLoaded',()=>{
+    initGallery('gallery1','p1');initGallery('gallery2','p2');
+    renderQuiz('quizBody1','p1');renderQuiz('quizBody2','p2');
+    renderTagSelector('tagSelector1','tagCount1','p1');
+    renderTagSelector('tagSelector2','tagCount2','p2');
+
+    $('btnLangFR').addEventListener('click',()=>{ST.lang='fr';applyLang();});
+
+    // Mode selection
+    $('btnModeDuo').addEventListener('click',()=>showS('disclaimer'));
+    $('btnModeMulti').addEventListener('click',()=>showS('multiChoice'));
+
+    // Multi lobby
+    $('btnHost').addEventListener('click',()=>hostCreateLobby());
+    $('btnJoin').addEventListener('click',()=>showS('joinLobby'));
+    $('btnJoinConnect').addEventListener('click',()=>{
+        const code=$('joinCode').value.trim();
+        if(code.length>=4) playerJoinLobby(code);
+    });
+
+    // Host lobby toggles
+    $('togHostPlays').addEventListener('click',function(){this.classList.toggle('on');MP.hostPlays=this.classList.contains('on');
+        if(MP.hostPlays){MP.players['__host__']={name:'Hôte',age:0,tags:[],imgs:{moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]},quiz:{},ready:false,vote:null};}
+        else{delete MP.players['__host__'];}
+        renderLobbyPlayers();});
+    $('togPhotos').addEventListener('click',function(){this.classList.toggle('on');MP.photosRequired=this.classList.contains('on');});
+
+    // Host start
+    $('btnHostStart').addEventListener('click',async()=>{
+        if(MP.hostPlays&&!MP.players['__host__']?.ready){
+            // Host needs to do profiling first
+            initMultiSetup();showS('multiSetup');return;
+        }
+        await hostStartGame();
+    });
+
+    // Multi player ready
+    $('btnMultiReady').addEventListener('click',()=>{
+        MP.myProfile.name=$('mName').value.trim()||'Player';
+        MP.myProfile.age=parseInt($('mAge').value)||0;
+        MP.myProfile.tags=ST._mp?.tags||[];
+        if(MP.mode==='host'){
+            // Host as player
+            Object.assign(MP.players['__host__'],MP.myProfile,{ready:true});
+            renderLobbyPlayers();
+            showS('hostLobby');
+        } else {
+            // Send profile to host
+            MP.hostConn.send({type:'profile',data:MP.myProfile});
+            showS('multiWait');
+        }
+    });
+
+    // Multi vote
+    $('mBtnAgree').addEventListener('click',()=>multiCastVote(true));
+    $('mBtnDisagree').addEventListener('click',()=>multiCastVote(false));
+
+    // Multi next
+    $('mBtnNext').addEventListener('click',()=>{
+        if(MP.mode==='host'){
+            MP.ci++;
+            hostBroadcast({type:'next',ci:MP.ci});
+            showMultiVote();
+        }
+    });
+    // Hide next button for non-host players
+    // (handled dynamically)
+    
+    $('btnLangEN').addEventListener('click',()=>{ST.lang='en';applyLang();});
+    // btnStart removed — replaced by btnModeDuo
+    $('btnAccept').addEventListener('click',()=>showS('rules'));
+    $('btnDecline').addEventListener('click',()=>showS('menu'));
+    $('btnRulesOk').addEventListener('click',()=>showS('setup1'));
+    $('btnCodexMenu').addEventListener('click',()=>openCodex('overview'));
+    $('btnCodexFloat').addEventListener('click',()=>openCodex('overview'));
+    $('btnCodexClose').addEventListener('click',closeCodex);
+    $('btnToQuiz1').addEventListener('click',()=>{ST.p1.name=$('name1').value.trim()||'Joueur 1';ST.p1.age=parseInt($('age1').value)||0;showS('quiz1');});
+    $('btnNext1').addEventListener('click',()=>showS('setup2'));
+    $('btnToQuiz2').addEventListener('click',()=>{ST.p2.name=$('name2').value.trim()||'Joueur 2';ST.p2.age=parseInt($('age2').value)||0;showS('quiz2');});
+    $('btnGenerate').addEventListener('click',async()=>{showS('loading');$('loadError').style.display='none';const ok=await analyze();if(ok&&ST.stmts.length>0){ST.ci=0;ST.p1.score=0;ST.p2.score=0;ST.p1.shield=0;ST.p2.shield=0;startVote();}else{$('loadError').textContent='Erreur. Réessayez.';$('loadError').style.display='block';}});
+    $('btnAgree').addEventListener('click',()=>castVote(true));
+    $('btnDisagree').addEventListener('click',()=>castVote(false));
+    $('btnNextQ').addEventListener('click',()=>{ST.ci++;startVote();});
+    $('btnSkip').addEventListener('click',skipQ);$('btnSkip2').addEventListener('click',skipQ);
+    $('btnLoadCancel').addEventListener('click',()=>showS('quiz2'));
+    $('btnReplay').addEventListener('click',()=>{
+        ST.ci=0;ST.p1.score=0;ST.p2.score=0;ST.p1.shield=0;ST.p2.shield=0;ST.stmts=[];
+        ST.p1.imgs={moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]};
+        ST.p2.imgs={moi:[],lieux:[],loisirs:[],ecrans:[],chats:[]};
+        ST.p1.quiz={};ST.p2.quiz={};ST.p1._quizPick=null;ST.p2._quizPick=null;ST.p1.tags=[];ST.p2.tags=[];ST.p1.age=0;ST.p2.age=0;
+        $('name1').value='';$('name2').value='';$('age1').value='';$('age2').value='';
+        renderUploadSections('p1');renderUploadSections('p2');
+        renderTagSelector('tagSelector1','tagCount1','p1');
+        renderTagSelector('tagSelector2','tagCount2','p2');
+        renderQuiz('quizBody1','p1');renderQuiz('quizBody2','p2');
+        showS('menu');
+    });
+});
+</script>
+</body>
+</html>
